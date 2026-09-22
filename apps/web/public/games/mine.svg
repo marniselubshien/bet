@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <radialGradient id="mineBall" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#3A5266" />
+      <stop offset="45%" stop-color="#213743" />
+      <stop offset="85%" stop-color="#14212D" />
+      <stop offset="100%" stop-color="#0B131A" />
+    </radialGradient>
+    <radialGradient id="spikePin" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#6B889E" />
+      <stop offset="70%" stop-color="#3A5266" />
+      <stop offset="100%" stop-color="#1A2A38" />
+    </radialGradient>
+    <radialGradient id="redLed" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FFA8B6" />
+      <stop offset="30%" stop-color="#FF1A44" />
+      <stop offset="80%" stop-color="#B80024" />
+      <stop offset="100%" stop-color="#660014" />
+    </radialGradient>
+    <filter id="mineShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <g filter="url(#mineShadow)">
+    <!-- 8 Detonator Spikes -->
+    <!-- Top -->
+    <rect x="47" y="6" width="6" height="20" rx="3" fill="url(#spikePin)" />
+    <circle cx="50" cy="7" r="4.5" fill="#557086" />
+    
+    <!-- Bottom -->
+    <rect x="47" y="74" width="6" height="20" rx="3" fill="url(#spikePin)" />
+    <circle cx="50" cy="93" r="4.5" fill="#2E4453" />
+    
+    <!-- Left -->
+    <rect x="6" y="47" width="20" height="6" rx="3" fill="url(#spikePin)" />
+    <circle cx="7" cy="50" r="4.5" fill="#557086" />
+    
+    <!-- Right -->
+    <rect x="74" y="47" width="20" height="6" rx="3" fill="url(#spikePin)" />
+    <circle cx="93" cy="50" r="4.5" fill="#2E4453" />
+
+    <!-- Top-Left -->
+    <g transform="rotate(45 50 50)">
+      <rect x="47" y="6" width="6" height="20" rx="3" fill="url(#spikePin)" />
+      <circle cx="50" cy="7" r="4.5" fill="#557086" />
+      <rect x="47" y="74" width="6" height="20" rx="3" fill="url(#spikePin)" />
+      <circle cx="50" cy="93" r="4.5" fill="#2E4453" />
+      <rect x="6" y="47" width="20" height="6" rx="3" fill="url(#spikePin)" />
+      <circle cx="7" cy="50" r="4.5" fill="#557086" />
+      <rect x="74" y="47" width="20" height="6" rx="3" fill="url(#spikePin)" />
+      <circle cx="93" cy="50" r="4.5" fill="#2E4453" />
+    </g>
+
+    <!-- Main Metallic Sphere -->
+    <circle cx="50" cy="50" r="28" fill="url(#mineBall)" stroke="#0E1A24" stroke-width="1.5" />
+
+    <!-- Surface Bolts / Rivets -->
+    <circle cx="40" cy="35" r="2" fill="#557086" opacity="0.6" />
+    <circle cx="60" cy="35" r="2" fill="#557086" opacity="0.6" />
+    <circle cx="35" cy="55" r="2" fill="#557086" opacity="0.6" />
+    <circle cx="65" cy="55" r="2" fill="#557086" opacity="0.6" />
+    <circle cx="50" cy="65" r="2" fill="#557086" opacity="0.6" />
+
+    <!-- Center Warning Light Well -->
+    <circle cx="50" cy="50" r="10" fill="#0E1A24" />
+    <circle cx="50" cy="50" r="7.5" fill="url(#redLed)" />
+    <!-- Specular glare on LED -->
+    <ellipse cx="48" cy="48" rx="2.5" ry="1.5" fill="#FFFFFF" opacity="0.8" />
+  </g>
+</svg>

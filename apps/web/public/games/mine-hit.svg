@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <radialGradient id="hitMineBall" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#801020" />
+      <stop offset="50%" stop-color="#4A0612" />
+      <stop offset="100%" stop-color="#240208" />
+    </radialGradient>
+    <radialGradient id="hitSpikePin" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FF4D6D" />
+      <stop offset="70%" stop-color="#801020" />
+      <stop offset="100%" stop-color="#38040E" />
+    </radialGradient>
+    <radialGradient id="hitLed" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="30%" stop-color="#FFDD55" />
+      <stop offset="70%" stop-color="#FF2A4D" />
+      <stop offset="100%" stop-color="#C70024" />
+    </radialGradient>
+    <filter id="redExplosionGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#FF2A4D" flood-opacity="0.85" />
+    </filter>
+  </defs>
+
+  <g filter="url(#redExplosionGlow)">
+    <!-- 8 Detonator Spikes -->
+    <rect x="47" y="6" width="6" height="20" rx="3" fill="url(#hitSpikePin)" />
+    <circle cx="50" cy="7" r="4.5" fill="#FF4D6D" />
+    <rect x="47" y="74" width="6" height="20" rx="3" fill="url(#hitSpikePin)" />
+    <circle cx="50" cy="93" r="4.5" fill="#C70024" />
+    <rect x="6" y="47" width="20" height="6" rx="3" fill="url(#hitSpikePin)" />
+    <circle cx="7" cy="50" r="4.5" fill="#FF4D6D" />
+    <rect x="74" y="47" width="20" height="6" rx="3" fill="url(#hitSpikePin)" />
+    <circle cx="93" cy="50" r="4.5" fill="#C70024" />
+
+    <g transform="rotate(45 50 50)">
+      <rect x="47" y="6" width="6" height="20" rx="3" fill="url(#hitSpikePin)" />
+      <circle cx="50" cy="7" r="4.5" fill="#FF4D6D" />
+      <rect x="47" y="74" width="6" height="20" rx="3" fill="url(#hitSpikePin)" />
+      <circle cx="50" cy="93" r="4.5" fill="#C70024" />
+      <rect x="6" y="47" width="20" height="6" rx="3" fill="url(#hitSpikePin)" />
+      <circle cx="7" cy="50" r="4.5" fill="#FF4D6D" />
+      <rect x="74" y="47" width="20" height="6" rx="3" fill="url(#hitSpikePin)" />
+      <circle cx="93" cy="50" r="4.5" fill="#C70024" />
+    </g>
+
+    <!-- Main Metallic Sphere with Glowing Red Detonation Core -->
+    <circle cx="50" cy="50" r="28" fill="url(#hitMineBall)" stroke="#FF2A4D" stroke-width="2" />
+    <circle cx="50" cy="50" r="12" fill="#240208" />
+    <circle cx="50" cy="50" r="9.5" fill="url(#hitLed)" />
+    <circle cx="50" cy="50" r="4" fill="#FFFFFF" opacity="0.9" />
+  </g>
+</svg>
