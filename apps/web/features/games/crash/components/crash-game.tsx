@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { placeCrashBet, resolveCrashGame } from "../actions";
 import { Rocket } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
 
 export function CrashGame({ gameId }: { gameId: string }) {
   const [betAmount, setBetAmount] = useState(10);
@@ -59,17 +60,14 @@ export function CrashGame({ gameId }: { gameId: string }) {
     }
   };
 
-  // Run the tick loop when state is 'running'
   useEffect(() => {
     if (gameState !== 'running') return;
 
     const tick = (now: number) => {
       const elapsed = (now - startTimeRef.current) / 1000;
-      // Exponential curve: 1 * e^(0.06 * elapsed^1.4)
       const mult = 1.0 + Math.pow(elapsed * 0.55, 1.8);
 
       if (mult >= crashPoint) {
-        // Crashed
         setCurrentMultiplier(crashPoint);
         setGameState('crashed');
         resolveCrashGame({
@@ -81,7 +79,6 @@ export function CrashGame({ gameId }: { gameId: string }) {
         return;
       }
 
-      // Check auto cashout
       if (autoCashout > 1 && mult >= autoCashout) {
         setCurrentMultiplier(autoCashout);
         setGameState('cashed_out');
@@ -110,44 +107,90 @@ export function CrashGame({ gameId }: { gameId: string }) {
     };
   }, [gameState, crashPoint, autoCashout, betAmount]);
 
-  const currentProfit = Number((betAmount * currentMultiplier).toFixed(2));
+  const currentProfit = Number(((betAmount * currentMultiplier) - betAmount).toFixed(2));
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 bg-[#1A2C38] rounded-2xl p-6 border border-[#2F4553] shadow-2xl">
-      {/* Controls Sidebar */}
-      <div className="w-full md:w-80 flex flex-col gap-5 bg-[#0F212E] p-6 rounded-xl border border-[#2F4553]">
+    <div className="w-full flex flex-col md:flex-row gap-3 sm:gap-4 bg-[#111420] rounded-xl p-3 sm:p-4 border border-[#1E2335] select-none">
+      {/* Game Visuals (On top on mobile) */}
+      <div className="order-1 md:order-2 flex-1 flex flex-col items-center justify-center bg-[#0B0E17] rounded-lg border border-[#1E2335] p-5 sm:p-6 relative min-h-[200px] sm:min-h-[260px] overflow-hidden">
+        {/* Background Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+        {/* Central Display */}
+        <div className="z-10 text-center">
+          <div className={`text-6xl sm:text-7xl font-black mb-2 tracking-tight font-mono transition-colors ${
+            gameState === 'crashed'
+              ? 'text-rose-500'
+              : gameState === 'cashed_out'
+              ? 'text-emerald-400'
+              : 'text-white'
+          }`}>
+            {currentMultiplier.toFixed(2)}x
+          </div>
+
+          {gameState === 'crashed' && (
+            <div className="text-sm font-bold text-rose-500 tracking-wider uppercase animate-bounce">
+              CRASHED
+            </div>
+          )}
+
+          {gameState === 'cashed_out' && (
+            <div className="text-sm font-bold text-emerald-400 tracking-wider">
+              CASHED OUT ₹{payout.toFixed(2)} ({cashedOutAt}x)
+            </div>
+          )}
+
+          {gameState === 'running' && (
+            <div className="flex items-center justify-center gap-2 text-xs font-bold text-amber-400">
+              <Rocket className="w-4 h-4 animate-pulse" />
+              <span>FLYING...</span>
+            </div>
+          )}
+
+          {gameState === 'idle' && (
+            <p className="text-xs text-[#64748B]">Set your bet and cashout before the crash</p>
+          )}
+        </div>
+      </div>
+
+      {/* Controls Sidebar (Underneath visuals on mobile) */}
+      <div className="order-2 md:order-1 w-full md:w-72 flex flex-col gap-3.5 bg-[#0B0E17] p-3.5 sm:p-4 rounded-lg border border-[#1E2335]">
         <div>
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bet Amount</label>
-          <div className="mt-2 flex bg-[#1A2C38] rounded-md p-1 border border-[#2F4553]">
+          <label className="text-[11px] font-bold text-[#8E9BAE] uppercase tracking-wider">Bet Amount</label>
+          <div className="mt-1.5 flex bg-[#111420] rounded-lg p-1 border border-[#202538] focus-within:border-[#7C3AED] transition-colors">
             <input 
               type="number" 
               disabled={gameState === 'running'}
               value={betAmount} 
               onChange={(e) => setBetAmount(Math.max(1, Number(e.target.value)))}
-              className="w-full bg-transparent px-3 text-sm font-bold text-white outline-none disabled:opacity-50"
+              className="w-full bg-transparent px-2 text-sm font-bold text-white outline-none disabled:opacity-50"
             />
-            <div className="flex gap-1">
-              <button 
+            <div className="flex items-center gap-0.5">
+              <Button 
+                variant="ghost" 
+                size="xs" 
                 disabled={gameState === 'running'}
                 onClick={() => setBetAmount(b => Math.max(1, Math.floor(b / 2)))} 
-                className="bg-[#2F4553] px-3 py-1 text-xs font-bold rounded text-white hover:bg-[#3d5a6c] disabled:opacity-50"
+                className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded disabled:opacity-50"
               >
-                1/2
-              </button>
-              <button 
+                ½
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="xs" 
                 disabled={gameState === 'running'}
                 onClick={() => setBetAmount(b => b * 2)} 
-                className="bg-[#2F4553] px-3 py-1 text-xs font-bold rounded text-white hover:bg-[#3d5a6c] disabled:opacity-50"
+                className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded disabled:opacity-50"
               >
-                2x
-              </button>
+                2×
+              </Button>
             </div>
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Auto Cashout (Optional)</label>
-          <div className="mt-2 bg-[#1A2C38] rounded-md p-2 border border-[#2F4553] flex items-center">
+          <label className="text-[11px] font-bold text-[#8E9BAE] uppercase tracking-wider">Auto Cashout</label>
+          <div className="mt-1.5 bg-[#111420] rounded-lg p-1.5 border border-[#202538] flex items-center focus-within:border-[#7C3AED] transition-colors">
             <input 
               type="number" 
               step="0.1"
@@ -157,70 +200,26 @@ export function CrashGame({ gameId }: { gameId: string }) {
               onChange={(e) => setAutoCashout(Math.max(1.01, Number(e.target.value)))}
               className="w-full bg-transparent px-2 text-sm font-bold text-white outline-none disabled:opacity-50"
             />
-            <span className="text-xs font-bold text-slate-400 mr-2">X</span>
+            <span className="text-xs font-bold text-[#64748B] mr-2">X</span>
           </div>
         </div>
 
         {gameState === 'running' ? (
-          <button 
+          <Button 
             onClick={handleCashout} 
-            className="mt-auto w-full rounded-md bg-[#1475E1] hover:bg-[#0f64c4] py-4 text-base font-bold text-white shadow-lg transition-transform hover:scale-[1.01] active:scale-95 tracking-wide uppercase"
+            className="mt-2 w-full h-11 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] tracking-wider uppercase cursor-pointer"
           >
-            Cashout ${currentProfit} ({currentMultiplier.toFixed(2)}x)
-          </button>
+            Cashout ₹{(betAmount + currentProfit).toFixed(2)} ({currentMultiplier.toFixed(2)}x)
+          </Button>
         ) : (
-          <button 
+          <Button 
             onClick={handleStart} 
             disabled={loading}
-            className="mt-auto w-full rounded-md bg-[#1475E1] hover:bg-[#0f64c4] py-4 text-base font-bold text-white shadow-lg transition-transform hover:scale-[1.01] active:scale-95 disabled:opacity-50 tracking-wide uppercase"
+            className="mt-2 w-full h-11 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 tracking-wider uppercase cursor-pointer"
           >
             {loading ? "Starting..." : "Bet"}
-          </button>
+          </Button>
         )}
-      </div>
-
-      {/* Game Visuals (Rocket Arena) */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-[#0F212E] rounded-xl border border-[#2F4553] p-8 relative min-h-[380px] overflow-hidden">
-        {/* Background Grid & Particles */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-        {/* Central Display */}
-        <div className="z-10 text-center">
-          <div className={`text-7xl font-black mb-3 tracking-tight font-mono transition-colors ${
-            gameState === 'crashed'
-              ? 'text-red-500 animate-pulse'
-              : gameState === 'cashed_out'
-              ? 'text-[#00E701]'
-              : gameState === 'running'
-              ? 'text-white'
-              : 'text-slate-500'
-          }`}>
-            {currentMultiplier.toFixed(2)}x
-          </div>
-
-          {gameState === 'crashed' && (
-            <div className="text-lg font-black text-red-400 animate-in zoom-in duration-200">
-              CRASHED @ {crashPoint.toFixed(2)}x
-            </div>
-          )}
-
-          {gameState === 'cashed_out' && (
-            <div className="text-lg font-black text-[#00E701] animate-in zoom-in duration-200">
-              Cashed Out @ {cashedOutAt}x! Won ${payout.toFixed(2)}
-            </div>
-          )}
-
-          {gameState === 'running' && (
-            <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-400">
-              <Rocket className="w-5 h-5 text-red-500 animate-bounce" />
-              Flying higher...
-            </div>
-          )}
-
-          {gameState === 'idle' && (
-            <p className="text-sm font-bold text-slate-400">Place bet to launch rocket</p>
-          )}
-        </div>
       </div>
     </div>
   );

@@ -9,7 +9,16 @@ import { CoinflipGame } from "@/features/games/coinflip/components/coinflip-game
 import { PlinkoGame } from "@/features/games/plinko/components/plinko-game";
 import { CrashGame } from "@/features/games/crash/components/crash-game";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, Headphones } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@workspace/ui/components/breadcrumb";
+import { Badge } from "@workspace/ui/components/badge";
 
 export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -70,27 +79,34 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   };
 
   return (
-    <div className="px-2 sm:px-4 md:px-6 py-4 max-w-[1240px] mx-auto flex flex-col gap-4">
+    <div className="w-full px-3 py-2 flex flex-col gap-2.5">
+      {/* Shadcn Breadcrumb Navigation & Provably Fair Badge */}
+      <div className="flex items-center justify-between py-1">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/casino" className="text-xs text-[#8F97A6] hover:text-white">Casino</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/casino" className="text-xs text-[#8F97A6] hover:text-white">Originals</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-xs font-bold text-white uppercase tracking-wider">{gameData.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 gap-1 text-[10px] font-semibold py-0.5 px-2">
+          <ShieldCheck className="w-3 h-3" />
+          <span>Provably Fair</span>
+        </Badge>
+      </div>
+
       {/* Primary Game Canvas */}
-      <div className="w-full flex justify-center">
+      <div className="w-full flex justify-center overflow-x-hidden">
         {renderGame()}
-      </div>
-
-      {/* Stake Bottom Sub-tabs (matching reference image) */}
-      <div className="flex items-center gap-2 mt-1 select-none">
-        <button type="button" className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#213743] hover:bg-[#2F4553] text-white text-xs font-bold transition-colors cursor-pointer border-none shadow-sm">
-          <span>Stake Originals</span>
-          <span className="text-[10px] text-[#8596A5]">▾</span>
-        </button>
-        <button type="button" className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-[#213743] hover:bg-[#2F4553] text-[#B1BAD3] hover:text-white text-xs font-bold transition-colors cursor-pointer border-none shadow-sm">
-          <span>Games For You</span>
-          <span className="text-[10px] text-[#8596A5]">▾</span>
-        </button>
-      </div>
-
-      {/* Floating Headset Support Icon (Bottom Right, matching reference) */}
-      <div className="fixed bottom-5 right-5 z-50 w-10 h-10 rounded-full bg-[#213743] hover:bg-[#2a4555] flex items-center justify-center text-white shadow-2xl cursor-pointer transition-transform hover:scale-105 border-none">
-        <Headphones className="w-4 h-4 text-[#B1BAD3]" />
       </div>
     </div>
   );

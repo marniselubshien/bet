@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
-@source "../**/*.{ts,tsx}";
+@source "../../../**/*.{ts,tsx}";
 
 @theme inline {
     --font-heading: var(--font-sans);
@@ -85,48 +85,60 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* 7X PASA Dark Theme — refined navy + violet */
 .dark {
-    --background: #1A2C38;
-    --foreground: #FFFFFF;
-    --card: #0F212E;
-    --card-foreground: #FFFFFF;
-    --popover: #0F212E;
-    --popover-foreground: #FFFFFF;
-    --primary: #1475E1;
+    --background: #080A12;
+    --foreground: #E8EAF0;
+    --card: #0E1018;
+    --card-foreground: #E8EAF0;
+    --popover: #0E1018;
+    --popover-foreground: #E8EAF0;
+    --primary: #7C3AED;
     --primary-foreground: #FFFFFF;
-    --secondary: #2F4553;
-    --secondary-foreground: #FFFFFF;
-    --muted: #0F212E;
-    --muted-foreground: #B1BAD3;
-    --accent: #2F4553;
-    --accent-foreground: #FFFFFF;
-    --destructive: #E74C3C;
-    --border: #2F4553;
-    --input: #0F212E;
-    --ring: #1475E1;
-    --chart-1: #1475E1;
-    --chart-2: #00E701;
-    --chart-3: #F1C40F;
-    --chart-4: #E74C3C;
-    --chart-5: #9B59B6;
-    --sidebar: #0F212E;
-    --sidebar-foreground: #B1BAD3;
-    --sidebar-primary: #1475E1;
+    --secondary: #151929;
+    --secondary-foreground: #A0ABBA;
+    --muted: #0E1018;
+    --muted-foreground: #6B7A90;
+    --accent: #181E30;
+    --accent-foreground: #D0D8E8;
+    --destructive: #E53E3E;
+    --border: #1C2133;
+    --input: #0D1020;
+    --ring: #7C3AED;
+    --chart-1: #7C3AED;
+    --chart-2: #10B981;
+    --chart-3: #F59E0B;
+    --chart-4: #EF4444;
+    --chart-5: #6366F1;
+    --sidebar: #0E1018;
+    --sidebar-foreground: #A0ABBA;
+    --sidebar-primary: #7C3AED;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #2F4553;
-    --sidebar-accent-foreground: #FFFFFF;
-    --sidebar-border: #1A2C38;
-    --sidebar-ring: #1475E1;
+    --sidebar-accent: #181E30;
+    --sidebar-accent-foreground: #D0D8E8;
+    --sidebar-border: #1C2133;
+    --sidebar-ring: #7C3AED;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
-    }
+  }
+}
+
+/* Utility: hide scrollbars but keep scrollability */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

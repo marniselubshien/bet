@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
-  Menu, BookmarkCheck, Heart, PlaySquare, Sparkles, Receipt,
-  Flame, ShoppingBag, Disc, Rocket, TrendingUp,
-  Target, Gift, Spade, User, Search, Bell, PanelRight, ChevronDown,
-  ChevronRight, Trophy, Newspaper, Handshake, ShieldCheck, Headphones, Globe
+  X, Send, CheckCircle2, ChevronRight, User, Wallet, LogOut, AlertTriangle,
+  Gift, BarChart2, FileText, BookmarkCheck, Settings, Megaphone, Headphones, Bell
 } from "lucide-react";
+import { authClient } from "@/lib/auth/client";
 import { ClientLogoutButton } from "./client-logout-button";
 
 interface CasinoShellProps {
@@ -17,542 +16,520 @@ interface CasinoShellProps {
   children: React.ReactNode;
 }
 
-/* Official Stake Cursive Logo Vector matching Stake.com */
-function StakeLogo({ className = "h-6 md:h-7 w-auto" }: { className?: string }) {
+/* 7X PASA Brand Logo */
+function PasaLogo() {
   return (
-    <svg viewBox="0 0 447 222" fill="currentColor" className={className}>
-      <g transform="matrix(1.1284878,0,0,1.1216599,0.000565,0.000629)">
-        <path d="M 25.68,56.89 C 25.58,30.42 42.52,15.74 73.62,15.63 96,15.55 100,30.19 100,35.51 c 0,10.19 -14.42,21 -14.42,21 0,0 0.8,6.35 13.18,6.3 12.38,-0.05 24.44,-8.22 24.37,-28.67 C 123.07,10.65 98.46,-0.09 74.13,0 53.78,0.07 -0.19,2.93 0,56.51 c 0.18,47.59 90,51.79 90.07,82.26 0.12,33.09 -37,42 -49.56,42 -12.56,0 -17.67,-8.89 -17.69,-13.77 -0.09,-26.8 26.58,-34.26 26.58,-34.26 0,-2 -1.56,-10.91 -11.89,-10.87 -26.61,0.05 -37.21,22.93 -37.13,45.27 0.07,19 13.5,30.86 33.78,30.78 38.78,-0.14 82.51,-19.06 82.35,-61.08 C 116.37,97.54 25.79,87.28 25.68,56.89 Z" />
-        <path d="m 395.37,162.18 c -0.31,-0.75 -1.18,-0.57 -2.33,0.38 -4.4,3.63 -14.46,13.91 -38,14 -42.92,0.16 -50.37,-70.58 -50.37,-70.58 0,0 32.71,-24.42 37.82,-34.27 5.11,-9.85 -11.15,-12 -11.15,-12 0,0 -22.88,27.84 -39.1,36 C 294,83.6 306,56 306.69,40.13 c 0.69,-15.87 -19.11,-12 -22.27,-10.48 0,6.93 -17.49,69.84 -23.86,104.42 -3.75,6 -9.11,12.86 -13.91,12.87 -2.78,0 -3.8,-5.15 -3.83,-12.53 0,-10.24 5.64,-26.65 5.6,-36.62 0,-6.9 -3.17,-7.31 -5.9,-7.3 -0.59,0 -3.87,0.09 -4.47,0.09 -7,0 -4.7,-6 -11,-5.94 -19.28,0.07 -43.84,21.12 -44.91,52.89 -6.51,4.31 -15.62,9.74 -20.27,9.76 -4.88,0 -6.09,-4.51 -6.1,-8.41 0,-6.85 11.08,-47.55 11.08,-47.55 0,0 14.11,-3.62 20.27,-4.81 4.66,-0.91 6,-1.25 7.81,-3.5 1.81,-2.25 5.35,-6.9 8.21,-11.08 2.86,-4.18 0.05,-7.41 -5.24,-7.39 -6.94,0 -25.51,4.4 -25.51,4.4 0,0 8.92,-38.46 8.91,-39.24 -0.01,-0.78 -1,-1.19 -2.51,-1.18 -3.38,0 -9.41,1.82 -13.27,3.2 -5.91,2.11 -10.72,9.35 -11.69,12.72 -0.97,3.37 -7.65,29.76 -7.65,29.76 0,0 -35.77,12.35 -40.66,14.2 a 0.74,0.74 0 0 0 -0.5,0.7 c 0,0.32 4.09,16 12.48,15.94 6,0 23.63,-7.22 23.63,-7.22 0,0 -9.06,36 -9,48 0,7.7 3.63,16.72 18.67,16.67 14,0 26.25,-7.23 33.11,-12.26 3.75,9.49 12.61,12.09 18.66,12.07 13.56,0 24,-10.82 25.34,-12.27 1.76,4.16 5.91,12.15 15.39,12.12 5.36,0 10.91,-6 15,-11.82 a 23.38,23.38 0 0 0 0.05,3.63 c 1.64,14.92 23.79,6.15 25,4.07 0.75,-10.79 0.28,-32.85 4.59,-46.47 5.72,46.46 27.42,77.71 66.43,77.57 21.81,-0.08 33,-6.35 37.63,-11.52 a 15.9,15.9 0 0 0 3.37,-15.44 z M 208.2,146.86 c -18.73,0.07 5.73,-48.48 21.71,-48.54 0.02,6.26 -0.33,48.47 -21.71,48.54 z" />
-        <path d="m 360.26,161.74 c 16.91,-0.06 30,-11.19 32.4,-14.81 3.1,-4.71 -3.6,-11.82 -5.73,-11.7 -5.34,5.11 -10.92,11.29 -23.45,11.33 -14.75,0.06 -11.41,-16.17 -11.41,-16.17 0,0 28.39,3.67 39.8,-16.74 3.65,-6.53 3.8,-15.56 2.33,-19.45 -1.47,-3.89 -9.73,-11.09 -22.87,-10 -16.14,1.36 -36.48,18.19 -40.95,38.4 -3.59,16.26 3.2,39.24 29.88,39.14 z m 18,-68.1 c 2.66,-0.09 2.42,4.29 1.71,8.87 -1,6.21 -9.53,22 -25.81,21.38 1.13,-9.19 13.24,-29.89 24.13,-30.25 z" />
-      </g>
-    </svg>
+    <Link href="/casino" className="flex items-center gap-1 group select-none">
+      <div className="flex items-center">
+        {/* 7X Stylized italic gradient mark */}
+        <div className="flex items-center justify-center font-black italic tracking-tighter text-xl text-[#A855F7] group-hover:text-[#C084FC] transition-colors leading-none pr-0.5">
+          7X
+        </div>
+        {/* PASA typography & subtag */}
+        <div className="flex flex-col ml-0.5 justify-center">
+          <span className="text-[17px] font-black tracking-wide text-white leading-none">
+            PASA
+          </span>
+          <span className="text-[6.5px] font-extrabold tracking-widest text-[#8F97A6] leading-none uppercase mt-0.5">
+            PLAY 7X WIN 7X
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }
 
-/* Custom SVG Icons tailored to Stake's exact visual style */
-function CasinoCardIcon({ className = "w-5 h-5" }: { className?: string }) {
+/* BNB Solid Filled SVG Icons matching mobile reference */
+function HomeFilledIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      {/* Back card corner peeking out on top-left */}
-      <path
-        d="M4.5 3C3.67 3 3 3.67 3 4.5v10c0 .41.34.75.75.75s.75-.34.75-.75V5c0-.55.45-1 1-1h7c.41 0 .75-.34.75-.75S12.91 3 12.5 3H4.5z"
-      />
-      <circle cx="5.2" cy="6.2" r="0.8" />
-      {/* Front card with cutout heart */}
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M6.5 5C5.67 5 5 5.67 5 6.5v12C5 19.33 5.67 20 6.5 20h11c.83 0 1.5-.67 1.5-1.5v-12C19 5.67 18.33 5 17.5 5h-11zm5.5 4.5c-.35-.45-.88-.75-1.5-.75-1.1 0-2 .9-2 2 0 1.5 1.5 2.8 3.5 4.4 2-1.6 3.5-2.9 3.5-4.4 0-1.1-.9-2-2-2-.62 0-1.15.3-1.5.75z"
-      />
+      <path d="M12 2.1 2.2 10.15a1 1 0 0 0-.2.62v9.73c0 .83.67 1.5 1.5 1.5h5.5c.55 0 1-.45 1-1v-4.5c0-.55.45-1 1-1h2c.55 0 1 .45 1 1V21c0 .55.45 1 1 1h5.5c.83 0 1.5-.67 1.5-1.5V10.77a1 1 0 0 0-.2-.62L12 2.1Z" />
     </svg>
   );
 }
 
-function SportsBallIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <circle cx="12" cy="12" r="9.5" />
-      <path d="M12 2.5a13 13 0 0 1 0 19" />
-      <path d="M2.5 12h19" />
-      <path d="M5.5 5.5a13 13 0 0 1 13 13" />
-    </svg>
-  );
-}
-
-function VipMountainIcon({ className = "w-5 h-5" }: { className?: string }) {
+function FreeMoneyFilledIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      {/* Flag at summit */}
-      <path d="M11 2v4.5l3.5-2L11 2.5z" />
-      {/* Mountain peak */}
-      <path d="M10 6.5 2.5 19.5h19L15 9l-2.5 3.5-2.5-6z" />
-      <path d="M10 6.5 12.5 12.5 15 9l-1-1.8z" opacity="0.35" />
+      <path d="M12 2a4 4 0 0 0-3.8 2.76 3.5 3.5 0 0 0-3.7 3.74H4a2 2 0 0 0-2 2v2a2 2 0 0 0 1 1.73V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6.27A2 2 0 0 0 22 12V10a2 2 0 0 0-2-2h-.5a3.5 3.5 0 0 0-3.7-3.74A4 4 0 0 0 12 2Zm-1 8.5V8.5h2v2h-2Zm-7 2h7v7.5H5a.5.5 0 0 1-.5-.5v-7Zm9 0h7V19.5a.5.5 0 0 1-.5.5H13v-7.5Z" />
     </svg>
   );
 }
 
-function AffiliateIcon({ className = "w-5 h-5" }: { className?: string }) {
+function AccountFilledIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <circle cx="6" cy="12" r="3.5" />
-      <circle cx="18" cy="6" r="3" />
-      <circle cx="18" cy="18" r="3" />
-      <path d="M8.5 10.8l6.5-3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M8.5 13.2l6.5 3.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 12.5c-4.42 0-8 2.24-8 5v1a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-1c0-2.76-3.58-5-8-5Z" />
     </svg>
   );
 }
 
-function ForumIcon({ className = "w-5 h-5" }: { className?: string }) {
+function SupportFilledIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="10" r="1" fill="currentColor" stroke="none" />
-      <circle cx="15.5" cy="10" r="1" fill="currentColor" stroke="none" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 2a9 9 0 0 0-9 9v3.5A3.5 3.5 0 0 0 6.5 18H7a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1H5.07A7.002 7.002 0 0 1 12 4a7.002 7.002 0 0 1 6.93 7H17a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h.5a3.5 3.5 0 0 0 3.5-3.5V11a9 9 0 0 0-9-9ZM5 13h1v3H5a1.5 1.5 0 0 1-1.5-1.5V14A1 1 0 0 1 5 13Zm14 3h-1v-3h1a1 1 0 0 1 1 1v.5a1.5 1.5 0 0 1-1.5 1.5Z" />
+    </svg>
+  );
+}
+
+function ChatFilledIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M20 2H4a2 2 0 0 0-2 2v13.5A1.5 1.5 0 0 0 3.5 19H6v3.29a1 1 0 0 0 1.62.78L12.5 19H20a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Zm-12 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" />
     </svg>
   );
 }
 
 export function CasinoShell({ session, profile, children }: CasinoShellProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const isLoggedIn = !!session?.user;
 
-  // Responsive default: close on small screens initially, open on desktop if desired
+  // Drawers & Modals state
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [freeMoneyOpen, setFreeMoneyOpen] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-      setSidebarOpen(true);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error");
+      if (err) {
+        setAuthError(err);
+      }
     }
   }, []);
+  
+  // Free Money Claimed status
+  const [claimedBonus, setClaimedBonus] = useState(false);
+  const [balance, setBalance] = useState<number>(() => {
+    return profile?.balance ? parseFloat(profile.balance) : 38.00;
+  });
 
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
+  const handleLogout = async () => {
+    setProfileMenuOpen(false);
+    try {
+      await authClient.signOut();
+      router.push("/auth/sign-in");
+    } catch {
+      router.push("/auth/sign-in");
+    }
   };
 
-  const navItemsTop = [
-    { label: "Saved Games", href: "/casino/saved", icon: BookmarkCheck },
-    { label: "Following", href: "/casino/following", icon: Heart },
-    { label: "Continue Playing", href: "/casino/recent", icon: PlaySquare },
-    { label: "Games For You", href: "/casino/for-you", icon: Sparkles },
-    { label: "My Bets", href: "/casino/bets", icon: Receipt },
-  ];
+  // Simulated live chat messages
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, user: "Karan_99", text: "Big hit on Wingo!! 🚀 450x multiplier!!", time: "12:18", badge: "VIP 3" },
+    { id: 2, user: "Rohan_Pro", text: "Trx Wingo is printing right now", time: "12:19", badge: "VIP 5" },
+    { id: 3, user: "Alex_Stake", text: "Who is on Aviator? Cashout at 15x", time: "12:20", badge: "VIP 2" },
+    { id: 4, user: "Priya777", text: "Claimed the daily ₹100 bonus, thanks Pasa!", time: "12:20", badge: "VIP 1" },
+  ]);
+  const [newChatText, setNewChatText] = useState("");
 
-  const navItemsGames = [
-    { label: "Only on Stake", href: "/casino/exclusive", isStakeBadge: true },
-    { label: "New Releases", href: "/casino/new", icon: Sparkles },
-    { label: "Slots", href: "/casino/slots", isSlotsBadge: true },
-    { label: "Stake Originals", href: "/casino", icon: Flame },
-    { label: "Live Casino", href: "/casino/live", icon: ShoppingBag },
-    { label: "Game Shows", href: "/casino/shows", icon: Disc },
-    { label: "Burst Games", href: "/casino/burst", icon: Rocket },
-    { label: "Enhanced RTP", href: "/casino/rtp", icon: TrendingUp },
-    { label: "Stake Poker", href: "/casino/poker", icon: Target },
-    { label: "Bonus Buy", href: "/casino/bonus-buy", icon: Gift },
-    { label: "Blackjack", href: "/casino/blackjack", icon: Spade },
-  ];
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newChatText.trim()) return;
+    const msg = {
+      id: Date.now(),
+      user: session?.user?.name || "Player",
+      text: newChatText.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      badge: "Player"
+    };
+    setChatMessages((prev) => [...prev, msg]);
+    setNewChatText("");
+  };
 
-  const navItemsSecondary = [
-    { label: "Promotions", href: "/promotions", icon: Gift, hasChevron: true },
-    { label: "VIP Club", href: "/vip", icon: VipMountainIcon },
-    { label: "Affiliate", href: "/affiliate", icon: AffiliateIcon },
-    { label: "Challenges", href: "/challenges", icon: Trophy },
-    { label: "Blog", href: "/blog", icon: Newspaper },
-    { label: "Forum", href: "/forum", icon: ForumIcon },
-  ];
-
-  const navItemsUtility = [
-    { label: "Sponsorships", href: "/sponsorships", icon: Handshake, hasChevron: true },
-    { label: "Provably Fair", href: "/provably-fair", icon: ShieldCheck },
-    { label: "Live Support", href: "/support", icon: Headphones },
-    { label: "English", href: "#", icon: Globe, hasChevron: true },
-  ];
-
-  /* 12 Collapsed Rail Items matching exact user screenshot */
-  const collapsedRailTopItems = [
-    {
-      id: "casino",
-      label: "Casino",
-      href: "/casino",
-      icon: CasinoCardIcon,
-      isActive: pathname === "/casino" || pathname.startsWith("/casino"),
-    },
-    {
-      id: "sports",
-      label: "Sports",
-      href: "/sports",
-      icon: SportsBallIcon,
-      isActive: pathname.startsWith("/sports"),
-    },
-    {
-      id: "promotions",
-      label: "Promotions",
-      href: "/promotions",
-      icon: Gift,
-      hasChevron: true,
-    },
-    {
-      id: "vip",
-      label: "VIP Club",
-      href: "/vip",
-      icon: VipMountainIcon,
-    },
-    {
-      id: "affiliate",
-      label: "Affiliate",
-      href: "/affiliate",
-      icon: AffiliateIcon,
-    },
-    {
-      id: "challenges",
-      label: "Challenges",
-      href: "/challenges",
-      icon: Trophy,
-    },
-    {
-      id: "blog",
-      label: "Blog",
-      href: "/blog",
-      icon: Newspaper,
-    },
-    {
-      id: "forum",
-      label: "Forum",
-      href: "/forum",
-      icon: ForumIcon,
-    },
-  ];
-
-  const collapsedRailBottomItems = [
-    {
-      id: "sponsorships",
-      label: "Sponsorships",
-      href: "/sponsorships",
-      icon: Handshake,
-      hasChevron: true,
-    },
-    {
-      id: "fairness",
-      label: "Provably Fair",
-      href: "/provably-fair",
-      icon: ShieldCheck,
-    },
-    {
-      id: "support",
-      label: "Live Support",
-      href: "/support",
-      icon: Headphones,
-    },
-    {
-      id: "language",
-      label: "Language",
-      href: "#language",
-      icon: Globe,
-      hasChevron: true,
-    },
-  ];
+  const handleClaimFreeMoney = () => {
+    if (!claimedBonus) {
+      setBalance((b) => b + 100);
+      setClaimedBonus(true);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#1A2C38] text-white font-sans selection:bg-[#1475E1] selection:text-white">
-      
-      {/* Topbar: Seamless Stake layout, bottom elevation shadow, centered balance & wallet */}
-      <header className="fixed top-0 inset-x-0 h-16 bg-[#1A2C38] z-50 flex items-center select-none shadow-[0_4px_20px_rgba(0,0,0,0.5)] border-none">
+    <div className="min-h-screen w-full flex justify-center bg-[#060810] font-sans antialiased">
+      {/* Mobile Shell */}
+      <div className="w-full max-w-[430px] min-h-screen bg-[#090B15] flex flex-col relative shadow-2xl border-x border-[#14192B]/70 pb-20">
         
-        {/* Left: Hamburger Column & Stake Logo */}
-        <div className="flex items-center h-full">
-          {/* Hamburger Column matching sidebar width */}
-          <div className={`h-full flex items-center bg-[#0F212E] transition-all duration-300 flex-shrink-0 ${
-            sidebarOpen ? "w-60 px-4 justify-start" : "w-[60px] justify-center"
-          }`}>
-            <button 
-              onClick={toggleSidebar}
-              aria-label="Toggle sidebar"
-              className="p-2 rounded-lg text-[#B1BAD3] hover:text-white hover:bg-[#213743] transition-colors cursor-pointer border-none flex items-center justify-center"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          </div>
+        {/* Sticky Header — refined, clean */}
+        <header className="sticky top-0 z-40 bg-[#090B15]/95 backdrop-blur-xl px-4 py-2.5 flex items-center justify-between border-b border-[#141A2D]">
+          {/* Brand Logo */}
+          <PasaLogo />
 
-          {/* Official Stake Logo */}
-          <Link href="/casino" className="flex items-center group ml-4 md:ml-6 text-white hover:opacity-95 transition-opacity">
-            <StakeLogo className="h-6 md:h-7 w-auto text-white" />
-          </Link>
-        </div>
-
-        {/* Center: Compound Balance + Wallet Pill (Horizontally centered across the viewport) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
-          <div className="flex items-center bg-[#0F212E] rounded-md overflow-hidden shadow-sm border-none">
-            <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 cursor-pointer hover:bg-[#152533] transition-colors">
-              <span className="text-white font-mono text-xs md:text-sm font-bold">
-                {Number(profile?.balance ?? 1000).toFixed(8)}
+          {/* Right Controls */}
+          <div className="flex items-center gap-2">
+            {/* Balance Capsule */}
+            <div className="flex items-center bg-gradient-to-b from-[#131726] to-[#0A0D18] border border-[#1E263D] rounded-full pl-3 pr-1 py-1 gap-2 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
+              <span className="font-mono text-[12.5px] font-bold text-slate-100 tabular-nums tracking-tight">
+                ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
-              <div className="w-4 h-4 rounded-full bg-[#26A17B] text-white flex items-center justify-center text-[10px] font-black leading-none flex-shrink-0">
-                ₮
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-[#B1BAD3] flex-shrink-0" />
+              <Link 
+                href="/casino/wallet"
+                className="w-6.5 h-6.5 rounded-full bg-gradient-to-b from-[#7C3AED] to-[#5F27CD] hover:from-[#8B5CF6] hover:to-[#6D28D9] flex items-center justify-center text-white transition-all cursor-pointer shadow-[0_2px_6px_rgba(109,40,217,0.4),inset_0_1px_0_rgba(255,255,255,0.25)] border-t border-white/20 active:scale-95"
+                title="Wallet"
+              >
+                <Wallet className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
-            <button className="bg-[#1475E1] hover:bg-[#0f64c4] text-white font-bold text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 transition-colors border-none cursor-pointer">
-              Wallet
-            </button>
-          </div>
-        </div>
-
-        {/* Right: 4 Action Icons */}
-        <div className="flex items-center gap-1 md:gap-2 px-4 md:px-6 ml-auto">
-          <button 
-            aria-label="Search"
-            className="p-2 text-[#B1BAD3] hover:text-white hover:bg-[#213743] rounded-lg transition-colors cursor-pointer border-none"
-          >
-            <Search className="w-5 h-5" />
-          </button>
-
-          {/* User Profile / Menu */}
-          <div className="relative group">
+            {/* Profile Button */}
             <button 
-              aria-label="User Profile"
-              className="p-2 text-[#B1BAD3] hover:text-white hover:bg-[#213743] rounded-lg transition-colors cursor-pointer border-none"
+              onClick={() => setProfileMenuOpen((prev) => !prev)}
+              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 ${
+                profileMenuOpen 
+                  ? "bg-[#1E2540] border-[#7C3AED] text-white" 
+                  : "bg-gradient-to-b from-[#141826] to-[#0D101C] border-[#1F273E] hover:border-[#354366] text-[#94A3B8] hover:text-white"
+              }`}
+              aria-label="Profile menu"
             >
-              <User className="w-5 h-5" />
+              <User className="w-4 h-4" />
             </button>
 
-            <div className="absolute right-0 top-full mt-1 w-44 bg-[#0F212E] rounded-lg shadow-xl py-1 hidden group-hover:block z-50 border-none">
-              {session ? (
-                <>
-                  <div className="px-3 py-1.5 text-xs text-[#8596A5] font-bold border-b border-[#213743] truncate">
-                    {session.user?.email || "Signed In"}
-                  </div>
-                  <div className="p-1">
-                    <ClientLogoutButton />
-                  </div>
-                </>
-              ) : (
-                <div className="p-2 flex flex-col gap-1">
-                  <Link 
-                    href="/auth/sign-in" 
-                    className="bg-[#2F4553] hover:bg-[#385364] text-white text-xs font-bold px-3 py-1.5 rounded text-center transition-colors"
+            {/* Bell */}
+            <Link
+              href="/casino/announcements"
+              className="w-8 h-8 rounded-full bg-gradient-to-b from-[#141826] to-[#0D101C] border border-[#1F273E] hover:border-[#354366] flex items-center justify-center transition-all relative cursor-pointer text-[#94A3B8] hover:text-white shadow-sm active:scale-95"
+              title="Announcements"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_6px_#f43f5e]" />
+            </Link>
+          </div>
+        </header>
+
+        {/* Profile Menu Dropdown */}
+        {profileMenuOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setProfileMenuOpen(false)} 
+            />
+            
+            {/* Dropdown Card — dark themed, matches the app */}
+            <div className="absolute top-[52px] right-3.5 z-50 w-[220px] bg-[#0E1220] rounded-2xl border border-[#1C253B] shadow-[0_16px_40px_rgba(0,0,0,0.7)] py-1.5 animate-in fade-in zoom-in-95 duration-150 origin-top-right">
+              {/* Caret */}
+              <div className="absolute -top-[7px] right-[22px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[7px] border-b-[#1C253B]" />
+              <div className="absolute -top-[6px] right-[22px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[7px] border-b-[#0E1220]" />
+
+              <div className="flex flex-col px-1">
+                {[
+                  { href: '/casino/wallet', icon: Wallet, label: 'Wallet' },
+                  { href: '/casino/free-money', icon: Gift, label: 'Free Money' },
+                  { href: '/casino/statistics', icon: BarChart2, label: 'Statistics' },
+                  { href: '/casino/transactions', icon: FileText, label: 'Transactions' },
+                  { href: '/casino/game-history', icon: BookmarkCheck, label: 'Game History' },
+                  { href: '/casino/settings', icon: Settings, label: 'Settings' },
+                  { href: '/casino/announcements', icon: Megaphone, label: 'Announcements' },
+                  { href: '/casino/support', icon: Headphones, label: 'Live Support' },
+                ].map(({ href, icon: Icon, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#151B2C] transition-colors text-[13px] font-medium text-[#CBD5E1] hover:text-white"
                   >
-                    Sign In
+                    <Icon className="w-4 h-4 text-[#718096] shrink-0" />
+                    <span>{label}</span>
                   </Link>
-                  <Link 
-                    href="/auth/sign-up" 
-                    className="bg-[#1475E1] hover:bg-[#0f64c4] text-white text-xs font-bold px-3 py-1.5 rounded text-center transition-colors"
-                  >
-                    Register
-                  </Link>
+                ))}
+
+                <div className="my-1 border-t border-[#1C253B]" />
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-rose-500/10 transition-colors text-[13px] font-medium text-rose-400 hover:text-rose-300 text-left cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 shrink-0" />
+                  <span>Log Out</span>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Main Content Area */}
+        <main className="flex-1 w-full flex flex-col">
+          {children}
+        </main>
+
+        {/* Bottom Navigation Bar (BNB) */}
+        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 bg-[#0A0D18]/94 backdrop-blur-xl border-t border-[#161E33] px-2 pb-3.5 flex items-center justify-around shadow-[0_-10px_35px_rgba(0,0,0,0.6)]">
+          {[  
+            { href: '/casino', icon: HomeFilledIcon, label: 'Home' },
+            { href: '/casino/promotions', icon: FreeMoneyFilledIcon, label: 'Bonuses' },
+            { href: '/casino/account', icon: AccountFilledIcon, label: 'Account' },
+            { href: '/casino/support', icon: SupportFilledIcon, label: 'Support' },
+          ].map(({ href, icon: Icon, label }) => {
+            const active = pathname === href || (href !== '/casino' && (pathname.startsWith(href) || (href === '/casino/support' && pathname.startsWith('/casino/chat'))));
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="relative flex-1 flex flex-col items-center pt-2.5 pb-1 gap-1.5 select-none group transition-transform active:scale-95"
+              >
+                {/* Top indicator bar for active tab */}
+                {active && (
+                  <>
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-b-full bg-gradient-to-r from-[#7C3AED] via-[#C4B5FD] to-[#7C3AED] shadow-[0_0_10px_rgba(167,139,250,0.8)]" />
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-3 bg-gradient-to-b from-[#7C3AED]/20 to-transparent pointer-events-none rounded-b-full blur-xs" />
+                  </>
+                )}
+
+                {/* Plain icon without card container */}
+                <Icon className={`w-5 h-5 transition-colors duration-200 ${
+                  active 
+                    ? 'text-[#C4B5FD] drop-shadow-[0_0_6px_rgba(167,139,250,0.45)]' 
+                    : 'text-[#505D78] group-hover:text-[#94A3B8]'
+                }`} />
+
+                {/* Label */}
+                <span className={`text-[10px] font-semibold tracking-tight transition-colors duration-200 ${
+                  active ? 'text-white font-bold' : 'text-[#505D78] group-hover:text-[#94A3B8]'
+                }`}>{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Live Support Drawer */}
+        {chatOpen && (
+          <div className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-xs">
+            <div className="w-full max-w-[430px] h-full bg-[#0E1018] flex flex-col shadow-2xl relative border-x border-[#1F2233]">
+              
+              {/* Support Header */}
+              <div className="p-3.5 border-b border-[#1A1C29] flex items-center justify-between bg-[#11131E]">
+                <div className="flex items-center gap-2">
+                  <SupportFilledIcon className="w-4 h-4 text-[#8B5CF6]" />
+                  <span className="text-sm font-bold text-white">Live Support</span>
+                  <span className="w-2 h-2 rounded-full bg-[#00E701]" />
                 </div>
+                <button 
+                  onClick={() => setChatOpen(false)}
+                  className="p-1 rounded-md text-[#8F97A6] hover:text-white hover:bg-white/5 cursor-pointer border-none bg-transparent"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Chat Messages List */}
+              <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
+                {chatMessages.map((msg) => (
+                  <div key={msg.id} className="bg-[#151724] border border-[#212435] rounded-xl p-2.5 text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-white text-[11px]">{msg.user}</span>
+                        <span className="text-[8px] font-extrabold bg-[#7C3AED]/20 text-[#A78BFA] px-1.5 py-0.5 rounded">
+                          {msg.badge}
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-[#6B7280]">{msg.time}</span>
+                    </div>
+                    <p className="text-[#D1D5DB] text-xs leading-relaxed">{msg.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Chat Input */}
+              <form onSubmit={handleSendChat} className="p-3 border-t border-[#1A1C29] bg-[#11131E] flex items-center gap-2">
+                <input 
+                  type="text" 
+                  value={newChatText}
+                  onChange={(e) => setNewChatText(e.target.value)}
+                  placeholder="Send a message..."
+                  className="flex-1 bg-[#1A1C29] border border-[#292D40] rounded-lg px-3 py-2 text-xs text-white placeholder-[#6B7280] outline-none focus:border-[#7C3AED]"
+                />
+                <button 
+                  type="submit"
+                  className="p-2 bg-gradient-to-b from-[#7C3AED] to-[#5F27CD] hover:from-[#8B5CF6] hover:to-[#6D28D9] rounded-lg text-white cursor-pointer border-none shadow-[0_2px_8px_rgba(124,58,237,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] active:scale-95 transition-all"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+
+            </div>
+          </div>
+        )}
+
+        {/* Free Money Modal */}
+        {freeMoneyOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs px-4">
+            <div className="w-full max-w-[360px] bg-[#0E1220] border border-[#1C253B] rounded-2xl p-5 shadow-2xl relative text-center">
+              <button 
+                onClick={() => setFreeMoneyOpen(false)}
+                className="absolute top-3.5 right-3.5 p-1 rounded-md text-[#8F97A6] hover:text-white cursor-pointer border-none bg-transparent"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-amber-500/20 to-amber-600/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <FreeMoneyFilledIcon className="w-8 h-8" />
+              </div>
+
+              <h3 className="text-base font-bold text-white tracking-tight">Daily Bonus Faucet</h3>
+              <p className="text-xs text-[#8F97A6] mt-1.5 max-w-[280px] mx-auto leading-relaxed">
+                Claim your daily free ₹100.00 refill to play Originals and Slots!
+              </p>
+
+              <div className="my-5 p-3 rounded-xl bg-gradient-to-b from-[#131828] to-[#0D101C] border border-[#1E2740] flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#8F97A6]">Reward Amount:</span>
+                <span className="text-base font-black text-emerald-400 font-mono">₹100.00 FREE</span>
+              </div>
+
+              {claimedBonus ? (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Claimed for Today! Refills in 23h 59m</span>
+                </div>
+              ) : (
+                <button 
+                  onClick={handleClaimFreeMoney}
+                  className="w-full py-3 bg-gradient-to-b from-[#7C3AED] to-[#5F27CD] hover:from-[#8B5CF6] hover:to-[#6D28D9] text-white text-xs font-bold rounded-xl shadow-[0_2px_10px_rgba(124,58,237,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-white/20 cursor-pointer transition-all active:scale-95"
+                >
+                  CLAIM ₹100 NOW
+                </button>
               )}
             </div>
           </div>
+        )}
 
-          <button 
-            aria-label="Notifications"
-            className="p-2 text-[#B1BAD3] hover:text-white hover:bg-[#213743] rounded-lg transition-colors cursor-pointer border-none"
-          >
-            <Bell className="w-5 h-5" />
-          </button>
-
-          <button 
-            aria-label="Chat and side panel"
-            className="p-2 text-[#B1BAD3] hover:text-white hover:bg-[#213743] rounded-lg transition-colors cursor-pointer border-none"
-          >
-            <PanelRight className="w-5 h-5" />
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Backdrop for Sidebar Drawer */}
-      {sidebarOpen && (
-        <div 
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm transition-opacity"
-        />
-      )}
-
-      {/* Sidebar: Smooth toggleable width between full (w-60) and collapsed rail (w-[60px] on desktop) */}
-      <aside 
-        className={`fixed inset-y-0 left-0 top-16 z-40 bg-[#0F212E] transition-all duration-300 ease-in-out select-none border-r border-[#213743]/40 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden ${
-          sidebarOpen 
-            ? "w-60 translate-x-0 opacity-100" 
-            : "max-md:-translate-x-full max-md:w-0 max-md:opacity-0 md:w-[60px] md:translate-x-0 md:opacity-100"
-        }`}
-      >
-        {sidebarOpen ? (
-          /* Expanded Sidebar View */
-          <div className="p-2.5 w-60">
-            <div className="bg-[#1A2C38] rounded-xl overflow-hidden py-1 shadow-sm">
+        {/* Account Drawer */}
+        {accountOpen && (
+          <div className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-xs">
+            <div className="w-full max-w-[430px] h-full bg-[#0A0D18] flex flex-col shadow-2xl relative border-x border-[#182136]">
               
-              {/* Top Actions */}
-              {navItemsTop.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link 
-                    key={item.label}
-                    href={item.href}
-                    className={`flex items-center gap-3.5 px-4 py-2.5 text-sm font-bold transition-colors ${
-                      isActive 
-                        ? "bg-[#2F4553] text-white" 
-                        : "text-white hover:bg-[#213743]"
-                    }`}
-                  >
-                    <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-[#B1BAD3]"}`} />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-
-              {/* Subtle Divider between sections */}
-              <div className="border-t border-[#213743] my-1.5 mx-3" />
-
-              {/* Games Category Header */}
-              <div className="px-4 pt-1.5 pb-1 text-sm font-bold text-[#8596A5]">
-                Games
+              {/* Drawer Header */}
+              <div className="p-3.5 border-b border-[#161F33] flex items-center justify-between bg-[#0E1322]">
+                <div className="flex items-center gap-2">
+                  <AccountFilledIcon className="w-4 h-4 text-[#8B5CF6]" />
+                  <span className="text-sm font-bold text-white tracking-tight">Account Details</span>
+                </div>
+                <button 
+                  onClick={() => setAccountOpen(false)}
+                  className="p-1 rounded-md text-[#8F97A6] hover:text-white hover:bg-white/5 cursor-pointer border-none bg-transparent"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              {/* Games List */}
-              {navItemsGames.map((item) => {
-                const Icon = item.icon;
-                const isActive = item.href === "/casino" && pathname === "/casino";
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`flex items-center gap-3.5 px-4 py-2.5 text-sm font-bold transition-colors ${
-                      isActive 
-                        ? "bg-[#2F4553] text-white" 
-                        : "text-white hover:bg-[#213743]"
-                    }`}
-                  >
-                    {item.isStakeBadge ? (
-                      <div className="flex h-4 w-4 items-center justify-center font-serif italic text-xs font-black text-[#B1BAD3]">
-                        S
+              {/* Drawer Body */}
+              <div className="p-4 flex flex-col gap-4 flex-1 overflow-y-auto">
+                {isLoggedIn ? (
+                  <>
+                    {/* User Card */}
+                    <div className="p-4 rounded-xl bg-gradient-to-b from-[#131828] to-[#0D101C] border border-[#1E2740] flex items-center gap-3 shadow-sm">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-b from-[#7C3AED] to-[#5F27CD] flex items-center justify-center text-white text-base font-black shadow-md border-t border-white/20">
+                        {session?.user?.name?.[0]?.toUpperCase() || 'U'}
                       </div>
-                    ) : item.isSlotsBadge ? (
-                      <div className="flex h-4 w-4 items-center justify-center text-[10px] font-black tracking-tighter text-[#B1BAD3] leading-none">
-                        777
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white">{session?.user?.name || "Player"}</span>
+                        <span className="text-xs text-[#8F97A6]">{session?.user?.email}</span>
+                        <span className="text-[10px] font-extrabold text-[#A78BFA] mt-0.5">VIP Level: Gold 1</span>
                       </div>
-                    ) : Icon ? (
-                      <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-[#B1BAD3]"}`} />
-                    ) : null}
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-
-              {/* Subtle Divider */}
-              <div className="border-t border-[#213743] my-1.5 mx-3" />
-
-              {/* Secondary Links */}
-              {navItemsSecondary.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`flex items-center justify-between px-4 py-2.5 text-sm font-bold transition-colors ${
-                      isActive 
-                        ? "bg-[#2F4553] text-white" 
-                        : "text-white hover:bg-[#213743]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-[#B1BAD3]"}`} />
-                      <span className="truncate">{item.label}</span>
                     </div>
-                    {item.hasChevron && (
-                      <ChevronRight className="w-3.5 h-3.5 text-[#8596A5]" />
-                    )}
-                  </Link>
-                );
-              })}
 
-              {/* Subtle Divider */}
-              <div className="border-t border-[#213743] my-1.5 mx-3" />
-
-              {/* Utility Links */}
-              {navItemsUtility.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="flex items-center justify-between px-4 py-2.5 text-sm font-bold text-white hover:bg-[#213743] transition-colors"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <Icon className="h-4 w-4 text-[#B1BAD3]" />
-                      <span className="truncate">{item.label}</span>
+                    {/* Balance & Wallet */}
+                    <div className="p-4 rounded-xl bg-gradient-to-b from-[#131828] to-[#0D101C] border border-[#1E2740] flex flex-col gap-3 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-[#8F97A6]">Total Balance</span>
+                        <span className="text-base font-mono font-black text-white">
+                          ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <button 
+                          onClick={() => setBalance(b => b + 500)}
+                          className="py-2.5 px-3 rounded-xl bg-gradient-to-b from-[#7C3AED] to-[#5F27CD] hover:from-[#8B5CF6] hover:to-[#6D28D9] text-white text-xs font-bold cursor-pointer border-t border-white/20 shadow-[0_2px_8px_rgba(124,58,237,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] active:scale-95 transition-all"
+                        >
+                          + Deposit ₹500
+                        </button>
+                        <button 
+                          onClick={() => alert("Withdrawal processing via UPI")}
+                          className="py-2.5 px-3 rounded-xl bg-gradient-to-b from-[#181D2E] to-[#101422] hover:from-[#1E253A] hover:to-[#14192A] text-slate-200 border border-[#222A40] hover:border-[#334060] text-xs font-bold cursor-pointer shadow-sm active:scale-95 transition-all"
+                        >
+                          Withdraw
+                        </button>
+                      </div>
                     </div>
-                    {item.hasChevron && (
-                      <ChevronRight className="w-3.5 h-3.5 text-[#8596A5]" />
-                    )}
-                  </Link>
-                );
-              })}
+
+                    {/* Sign out */}
+                    <div className="mt-auto pt-4">
+                      <ClientLogoutButton />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <AccountFilledIcon className="w-12 h-12 text-[#8B5CF6] mb-3" />
+                    <h4 className="text-base font-bold text-white tracking-tight">Join 7X PASA</h4>
+                    <p className="text-xs text-[#8F97A6] mt-1 max-w-[240px] leading-relaxed">
+                      Sign in or create an account to play with real balances, climb VIP ranks, and claim bonuses!
+                    </p>
+                    <div className="flex flex-col gap-2.5 w-full mt-6">
+                      <Link 
+                        href="/auth/sign-in" 
+                        onClick={() => setAccountOpen(false)}
+                        className="w-full py-2.5 rounded-xl bg-gradient-to-b from-[#7C3AED] to-[#5F27CD] hover:from-[#8B5CF6] hover:to-[#6D28D9] text-white text-xs font-bold text-center border-t border-white/20 shadow-[0_2px_8px_rgba(124,58,237,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] active:scale-95 transition-all"
+                      >
+                        Sign In
+                      </Link>
+                      <Link 
+                        href="/auth/sign-up" 
+                        onClick={() => setAccountOpen(false)}
+                        className="w-full py-2.5 rounded-xl bg-gradient-to-b from-[#181D2E] to-[#101422] hover:from-[#1E253A] hover:to-[#14192A] border border-[#222A40] hover:border-[#334060] text-slate-200 text-xs font-bold text-center shadow-sm active:scale-95 transition-all"
+                      >
+                        Create New Account
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
 
             </div>
           </div>
-        ) : (
-          /* Collapsed Mini Rail: Exact match to user screenshot */
-          <div className="w-[60px] py-2.5 flex flex-col items-center gap-1.5">
-            {/* Top Navigation Items */}
-            {collapsedRailTopItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.id} className="relative group/rail flex items-center justify-center">
-                  <Link
-                    href={item.href}
-                    aria-label={item.label}
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
-                      item.isActive 
-                        ? "bg-[#213743] text-white shadow-sm" 
-                        : "text-[#B1BAD3] hover:text-white hover:bg-[#213743]"
-                    }`}
-                  >
-                    {item.hasChevron ? (
-                      <div className="flex items-center justify-center">
-                        <Icon className="w-5 h-5" />
-                        <ChevronRight className="w-2.5 h-2.5 text-[#8596A5] -mr-1 stroke-[2.5]" />
-                      </div>
-                    ) : (
-                      <Icon className="w-5 h-5" />
-                    )}
-                  </Link>
+        )}
 
-                  {/* Tooltip on hover */}
-                  <div className="pointer-events-none absolute left-full ml-2.5 px-2.5 py-1 bg-[#1A2C38] text-white text-xs font-semibold rounded shadow-2xl border border-[#2F4553] opacity-0 group-hover/rail:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50">
-                    {item.label}
-                  </div>
-                </div>
-              );
-            })}
 
-            {/* Subtle Divider between groups */}
-            <div className="w-7 h-[1px] bg-[#213743] my-1" />
+        {/* Auth Error Notification Modal */}
+        {authError === "account_not_linked" && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+            <div className="w-full max-w-[380px] bg-[#0F1221] border border-amber-500/40 rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_40px_rgba(234,179,8,0.2)] flex flex-col text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+              
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto mb-3.5">
+                <AlertTriangle className="w-6 h-6 text-amber-400" />
+              </div>
 
-            {/* Bottom Utility Items */}
-            {collapsedRailBottomItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.id} className="relative group/rail flex items-center justify-center">
-                  <Link
-                    href={item.href}
-                    aria-label={item.label}
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-[#B1BAD3] hover:text-white hover:bg-[#213743] transition-colors cursor-pointer"
-                  >
-                    {item.hasChevron ? (
-                      <div className="flex items-center justify-center">
-                        <Icon className="w-5 h-5" />
-                        <ChevronRight className="w-2.5 h-2.5 text-[#8596A5] -mr-1 stroke-[2.5]" />
-                      </div>
-                    ) : (
-                      <Icon className="w-5 h-5" />
-                    )}
-                  </Link>
+              <h3 className="text-base font-black text-white tracking-tight">
+                Account Already Exists
+              </h3>
+              <p className="text-xs text-[#94A3B8] mt-2 leading-relaxed">
+                An account with this email was registered using an <span className="text-white font-semibold">Email & Password</span>.
+              </p>
+              <p className="text-[11px] text-[#CBD5E1]/80 mt-1 leading-relaxed">
+                For security, please sign in using your password.
+              </p>
 
-                  {/* Tooltip on hover */}
-                  <div className="pointer-events-none absolute left-full ml-2.5 px-2.5 py-1 bg-[#1A2C38] text-white text-xs font-semibold rounded shadow-2xl border border-[#2F4553] opacity-0 group-hover/rail:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50">
-                    {item.label}
-                  </div>
-                </div>
-              );
-            })}
+              <div className="flex flex-col gap-2 mt-5">
+                <Link
+                  href="/auth/sign-in?error=account_not_linked"
+                  onClick={() => setAuthError(null)}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-b from-[#7C3AED] to-[#5F27CD] hover:from-[#8B5CF6] hover:to-[#6D28D9] text-white text-xs font-bold border-t border-white/20 shadow-[0_2px_10px_rgba(124,58,237,0.35),inset_0_1px_0_rgba(255,255,255,0.2)] transition-all text-center flex items-center justify-center active:scale-95"
+                >
+                  Sign In with Password
+                </Link>
+                <button
+                  onClick={() => setAuthError(null)}
+                  className="w-full py-2 rounded-xl text-xs font-semibold text-[#8F97A6] hover:text-white bg-transparent border-none cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
           </div>
         )}
-      </aside>
 
-      {/* Main Content Area: Smooth responsive left padding when sidebar toggles */}
-      <main 
-        className={`pt-16 min-h-screen bg-[#1A2C38] transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "md:pl-60" : "md:pl-[60px] pl-0"
-        }`}
-      >
-        <div className="w-full">
-          {children}
-        </div>
-      </main>
-
+      </div>
     </div>
   );
 }

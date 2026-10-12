@@ -9,7 +9,14 @@ export function AuthUIProvider({ children }: { children: React.ReactNode }) {
   return (
     <NeonAuthUIProvider
       authClient={authClient}
+      defaultTheme="dark"
       redirectTo="/casino"
+      social={{
+        providers: ["google"],
+      }}
+      credentials={{
+        forgotPassword: true,
+      }}
     >
       {children}
     </NeonAuthUIProvider>
