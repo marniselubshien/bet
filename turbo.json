@@ -1,6 +1,18 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "DATABASE_URL",
+    "DATABASE_URL_UNPOOLED",
+    "NEON_BRANCH",
+    "NEON_AUTH_BASE_URL",
+    "NEON_AUTH_JWKS_URL",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_ENDPOINT_URL_S3",
+    "AWS_REGION",
+    "NEON_AUTH_COOKIE_SECRET"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

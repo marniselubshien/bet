@@ -4,6 +4,8 @@ import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { CasinoShell } from "@/components/casino-shell";
 
+export const dynamic = "force-dynamic";
+
 export default async function CasinoLayout({
   children,
 }: {
