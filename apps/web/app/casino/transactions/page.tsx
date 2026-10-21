@@ -179,7 +179,7 @@ export default function TransactionsPage() {
                     </span>
                     <div 
                       onClick={() => handleCopy(tx.refId)}
-                      className="flex items-center gap-1 text-[9px] text-[#A78BFA] hover:text-white cursor-pointer mt-1 font-mono"
+                      className="flex items-center gap-1 text-[9px] text-[#A78BFA] hover:text-white cursor-pointer mt-1 font-sans"
                     >
                       <span>ID: {tx.refId}</span>
                       {copiedId === tx.refId ? (
@@ -193,7 +193,7 @@ export default function TransactionsPage() {
 
                 {/* Right Amount & Status */}
                 <div className="flex flex-col items-end">
-                  <span className={`font-mono text-sm font-bold ${
+                  <span className={`font-sans text-sm font-bold ${
                     isCredit ? "text-emerald-400" : "text-white"
                   }`}>
                     {isCredit ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}

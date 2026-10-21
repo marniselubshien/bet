@@ -138,7 +138,7 @@ export default function FreeMoneyPage() {
                 }`}
               >
                 <span className="text-[9px] font-bold">D{item.day}</span>
-                <span className="text-[10px] font-black font-mono mt-0.5">
+                <span className="text-[10px] font-black font-sans mt-0.5">
                   ₹{item.amount}
                 </span>
                 {isClaimed ? (
@@ -204,7 +204,7 @@ export default function FreeMoneyPage() {
         </p>
 
         <div className="flex items-center gap-2 bg-[#0E101B] border border-[#1E2335] rounded-xl px-3 py-2">
-          <span className="text-xs font-mono font-bold text-white tracking-widest flex-1">
+          <span className="text-xs font-sans font-bold text-white tracking-widest flex-1">
             PASA7X
           </span>
           <button

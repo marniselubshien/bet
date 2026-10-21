@@ -1,7 +1,2 @@
-"use client";
-
-import WithdrawalHistoryPage from "../wallet/withdrawal-history/page";
-
-export default function Page() {
-  return <WithdrawalHistoryPage />;
-}
+import {PaymentPage} from "@/features/payments/payment-page"
+export default function Page(){return <PaymentPage kind="withdrawal" history={true}/> }

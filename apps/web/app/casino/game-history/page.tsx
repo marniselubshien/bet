@@ -135,13 +135,13 @@ export default function GameHistoryPage() {
               </div>
               <div>
                 <span className="text-[#717A8C]">Bet / Result: </span>
-                <span className="text-white font-mono font-bold">
+                <span className="text-white font-sans font-bold">
                   ₹{selectedBet.bet} • {selectedBet.multiplier > 0 ? `${selectedBet.multiplier}x` : "Bust"}
                 </span>
               </div>
               <div>
                 <span className="text-[#717A8C]">Server Seed Hash: </span>
-                <span className="text-[#A78BFA] font-mono break-all text-[11px] block mt-0.5">
+                <span className="text-[#A78BFA] font-sans break-all text-[11px] block mt-0.5">
                   {selectedBet.seed}
                 </span>
               </div>
@@ -221,12 +221,12 @@ export default function GameHistoryPage() {
 
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-1.5">
-                <span className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md ${
+                <span className={`font-sans text-[11px] font-bold px-1.5 py-0.5 rounded-md ${
                   bet.win ? "bg-emerald-500/15 text-emerald-400" : "bg-zinc-800 text-zinc-400"
                 }`}>
                   {bet.multiplier > 0 ? `${bet.multiplier}x` : "0.00x"}
                 </span>
-                <span className={`font-mono text-sm font-black ${
+                <span className={`font-sans text-sm font-black ${
                   bet.win ? "text-emerald-400" : "text-rose-400"
                 }`}>
                   {bet.win ? `+₹${bet.payout.toFixed(2)}` : `-₹${bet.bet.toFixed(2)}`}

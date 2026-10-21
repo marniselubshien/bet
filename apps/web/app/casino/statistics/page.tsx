@@ -99,7 +99,7 @@ export default function StatisticsPage() {
             <span className="text-[11px] font-bold text-[#A78BFA] uppercase tracking-wider">
               Net Profit
             </span>
-            <span className="text-2xl font-black text-emerald-400 font-mono mt-0.5">
+            <span className="text-2xl font-black text-emerald-400 font-sans mt-0.5">
               +₹{current.profit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
           </div>
@@ -111,13 +111,13 @@ export default function StatisticsPage() {
         <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#23273D] text-xs">
           <div>
             <span className="text-[#8F97A6] text-[11px]">Total Wagered: </span>
-            <div className="font-bold text-white font-mono text-sm">
+            <div className="font-bold text-white font-sans text-sm">
               ₹{current.wagered.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
           </div>
           <div className="text-right">
             <span className="text-[#8F97A6] text-[11px]">Total Won: </span>
-            <div className="font-bold text-emerald-300 font-mono text-sm">
+            <div className="font-bold text-emerald-300 font-sans text-sm">
               ₹{current.won.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function StatisticsPage() {
             <span className="text-[10px] font-bold text-[#8F97A6] uppercase">Total Bets</span>
             <Gamepad2 className="w-3.5 h-3.5 text-[#A78BFA]" />
           </div>
-          <span className="text-base font-black text-white font-mono">
+          <span className="text-base font-black text-white font-sans">
             {current.bets.toLocaleString("en-IN")}
           </span>
         </div>
@@ -143,7 +143,7 @@ export default function StatisticsPage() {
             <span className="text-[10px] font-bold text-[#8F97A6] uppercase">Win Rate</span>
             <Percent className="w-3.5 h-3.5 text-emerald-400" />
           </div>
-          <span className="text-base font-black text-emerald-400 font-mono">
+          <span className="text-base font-black text-emerald-400 font-sans">
             {current.winRate}
           </span>
         </div>
@@ -154,7 +154,7 @@ export default function StatisticsPage() {
             <span className="text-[10px] font-bold text-[#8F97A6] uppercase">Highest Multiplier</span>
             <Zap className="w-3.5 h-3.5 text-amber-400" />
           </div>
-          <span className="text-base font-black text-amber-400 font-mono">
+          <span className="text-base font-black text-amber-400 font-sans">
             {current.highestMult}
           </span>
         </div>
@@ -189,10 +189,10 @@ export default function StatisticsPage() {
                 </span>
               </div>
               <div className="flex flex-col items-end">
-                <span className={`font-mono font-bold ${game.positive ? "text-emerald-400" : "text-rose-400"}`}>
+                <span className={`font-sans font-bold ${game.positive ? "text-emerald-400" : "text-rose-400"}`}>
                   {game.profit}
                 </span>
-                <span className="text-[10px] text-[#768095] font-mono">
+                <span className="text-[10px] text-[#768095] font-sans">
                   {game.wagered}
                 </span>
               </div>

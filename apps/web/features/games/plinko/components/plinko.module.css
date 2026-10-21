@@ -1,0 +1,237 @@
+.game {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #303847;
+  border-radius: 10px;
+  background: #202632;
+  color: #eef3fa;
+  font-variant-numeric: tabular-nums;
+}
+.visual {
+  position: relative;
+  background: #141922;
+  padding: 7px 10px 0;
+}
+.board {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.history {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #94a4bc;
+  z-index: 1;
+}
+.history > span {
+  background: #2f394a;
+  color: #f4c64c;
+  padding: 5px;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 800;
+}
+.ball {
+  filter: drop-shadow(0 0 4px #ffad6280);
+}
+.hit {
+  animation: land 0.45s ease-out both;
+}
+.status {
+  min-height: 25px;
+  text-align: center;
+  margin: 0;
+  color: #9caac0;
+  font-size: 10px;
+  line-height: 20px;
+}
+.controls {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.bet {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #ffb56c;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #ffbd75, #ff813c);
+  color: #271a10;
+  font-size: 14px;
+  font-weight: 850;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: filter 0.15s;
+}
+.bet:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+.controls label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #aab8ce;
+  font-size: 12px;
+  font-weight: 650;
+}
+.controls label span {
+  color: #8f9db2;
+  font-size: 11px;
+  font-weight: 500;
+}
+.amount {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  background: #151b26;
+  border: 1px solid #465267;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.amount > span {
+  padding-left: 10px;
+  color: #f4c64c;
+  font-size: 14px;
+  font-weight: 700;
+}
+.amount input {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 10px 8px;
+  color: #e5edf7;
+  font:
+    650 14px var(--font-dm-sans),
+    sans-serif;
+  appearance: textfield;
+}
+.amount input::-webkit-inner-spin-button,
+.amount input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.amount button {
+  align-self: stretch;
+  min-width: 46px;
+  background: #39475c;
+  border: 0;
+  border-left: 1px solid #48576d;
+  color: #edf2fa;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.amount button:hover:not(:disabled) {
+  background: #475871;
+}
+.controls select {
+  width: 100%;
+  min-height: 43px;
+  border: 1px solid #465267;
+  border-radius: 6px;
+  background: #171f2b;
+  color: #dce5f1;
+  padding: 10px;
+  font:
+    650 13px var(--font-dm-sans),
+    sans-serif;
+  margin-bottom: 6px;
+  color-scheme: dark;
+}
+.controls select:disabled {
+  color: #8c9ab1;
+  opacity: 0.8;
+}
+.amount:focus-within,
+.controls select:focus {
+  border-color: #f4c64c;
+}
+.controls button:disabled,
+.controls input:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px;
+  background: #171e29;
+  border-radius: 24px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #c3cfe0;
+}
+.mode svg {
+  color: #ffad62;
+}
+.mode span {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  color: #899ab1;
+}
+.help {
+  border-top: 1px solid #354053;
+  padding: 13px;
+  color: #91a3bd;
+  font-size: 11px;
+  background: #252e3d;
+}
+.help summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+}
+.help summary::-webkit-details-marker {
+  display: none;
+}
+.help p {
+  line-height: 1.7;
+  margin: 12px 0 0;
+}
+.error {
+  margin: 0;
+  padding: 9px;
+  border: 1px solid #824352;
+  border-radius: 5px;
+  background: #522c3540;
+  color: #ffabb8;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.game button:focus-visible,
+.help summary:focus-visible,
+.controls select:focus-visible {
+  outline: 2px solid #f4c64c;
+  outline-offset: 2px;
+}
+@keyframes land {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

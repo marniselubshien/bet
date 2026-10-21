@@ -1,15 +1,11 @@
-import { Geist_Mono, Inter } from "next/font/google"
+import { DM_Sans } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" })
 
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
 
 export default function RootLayout({
   children,
@@ -20,7 +16,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("dark antialiased", fontMono.variable, "font-sans", inter.variable)}
+      className={cn("dark antialiased",  "font-sans", dmSans.variable)}
     >
       <body className="min-h-screen bg-[#07080E] text-white antialiased">
         <ThemeProvider forcedTheme="dark" defaultTheme="dark">{children}</ThemeProvider>

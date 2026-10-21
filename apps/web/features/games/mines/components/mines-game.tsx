@@ -1,309 +1,347 @@
-"use client";
+"use client"
+import { useEffect, useRef, useState } from "react"
+import { Bomb, Shuffle, LoaderCircle, Trophy, RotateCcw, ArrowRightToLine, TriangleAlert, X } from "lucide-react"
+import { useBetRequest } from "@/features/games/use-bet-request"
+import {
+  startMinesGame,
+  revealMinesTile,
+  cashoutMines,
+  resumeMinesGame,
+} from "../actions"
+import styles from "./mines.module.css"
 
-import React, { useState } from "react";
-import { startMinesGame, revealMinesTile, cashoutMines } from "../actions";
-import { Button } from "@workspace/ui/components/button";
-import { 
-  Settings, Sliders, BarChart2, Maximize, ShieldCheck, ChevronDown
-} from "lucide-react";
-
-/* Stake Diamond / Gem Icon */
-function StakeGemIcon({ className = "w-9 h-9 sm:w-12 sm:h-12" }: { className?: string }) {
-  return (
-    <img 
-      src="https://stake.ac/_app/immutable/assets/gem-none.Bcv6X_BH.svg"
-      alt="Diamond"
-      onError={(e) => {
-        (e.currentTarget as HTMLImageElement).src = "/games/gem.svg";
-      }}
-      className={`${className} object-contain`}
-    />
-  );
-}
-
-/* Stake Mine / Bomb Icon */
-function StakeMineIcon({ className = "w-8 h-8 sm:w-10 sm:h-10", isHit = false }: { className?: string; isHit?: boolean }) {
-  return (
-    <img 
-      src="https://stake.ac/_app/immutable/assets/mine.BrdEJX0T.svg"
-      alt="Mine Bomb"
-      onError={(e) => {
-        (e.currentTarget as HTMLImageElement).src = isHit ? "/games/mine-hit.svg" : "/games/mine.svg";
-      }}
-      className={`${className} object-contain ${
-        isHit ? "scale-105" : ""
-      }`}
-    />
-  );
-}
-
+type Phase = "idle" | "playing" | "won" | "lost" | "refunded"
 export function MinesGame({ gameId }: { gameId: string }) {
-  const [betTab, setBetTab] = useState<"manual" | "auto">("manual");
-  const [betAmount, setBetAmount] = useState<number>(10);
-  const [minesCount, setMinesCount] = useState<number>(3);
-  const [inGame, setInGame] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  
-  // Game state
-  const [revealed, setRevealed] = useState<number[]>([]);
-  const [mines, setMines] = useState<number[]>([]);
-  const [currentMultiplier, setCurrentMultiplier] = useState<number>(1);
-  const [nextMultiplier, setNextMultiplier] = useState<number>(1.12);
-  const [hitMine, setHitMine] = useState<number | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-
-  // Remaining gems count
-  const remainingGems = Math.max(0, 25 - minesCount - revealed.length);
-
-  const handleStart = async () => {
-    setLoading(true);
-    setMessage(null);
-    setHitMine(null);
-    setMines([]);
-    setRevealed([]);
-
-    try {
-      const res = await startMinesGame({ betAmount: betAmount || 10, minesCount });
-      setInGame(true);
-      setCurrentMultiplier(res.currentMultiplier);
-      setNextMultiplier(res.nextMultiplier);
-    } catch (err: any) {
-      alert(err.message || "Failed to start game");
-    } finally {
-      setLoading(false);
+  const request = useBetRequest()
+  const lock = useRef(false)
+  const [phase, setPhase] = useState<Phase>("idle")
+  const [ready, setReady] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [pending, setPending] = useState<number | null>(null)
+  const [amount, setAmount] = useState("10")
+  const [roundStake, setRoundStake] = useState(0)
+  const [roundCount, setRoundCount] = useState(3)
+  const [count, setCount] = useState(3)
+  const [round, setRound] = useState("")
+  const [revealed, setRevealed] = useState<number[]>([])
+  const [mines, setMines] = useState<number[]>([])
+  const [hit, setHit] = useState<number | null>(null)
+  const [mult, setMult] = useState(1)
+  const [next, setNext] = useState(1)
+  const [payout, setPayout] = useState(0)
+  const [error, setError] = useState("")
+  const active = phase === "playing"
+  const ended = ["won", "lost", "refunded"].includes(phase)
+  const stake = Number(amount)
+  const cash = Math.floor(roundStake * mult * 100 + 1e-7) / 100
+  const gemsLeft = Math.max(0, 25 - (active || ended ? roundCount : count) - revealed.length)
+  const chance = active ? gemsLeft / (25 - revealed.length) * 100 : 0
+  const nextProfit = active && next > 0 ? Math.floor(roundStake * next * 100 + 1e-7) / 100 - roundStake : 0
+  useEffect(() => {
+    let cancelled = false
+    resumeMinesGame()
+      .then((res) => {
+        if (!res || cancelled) return
+        setRound(res.roundId)
+        setAmount(String(res.betAmount))
+        setCount(res.minesCount)
+        setRoundCount(res.minesCount)
+        setRoundStake(res.betAmount)
+        setRevealed(res.revealedIndices)
+        setMult(res.currentMultiplier)
+        setNext(res.nextMultiplier)
+        setPhase("playing")
+      })
+      .catch(() => {
+        /* Signing in is required when a player starts a round. */
+      })
+      .finally(() => {
+        if (!cancelled) setReady(true)
+      })
+    return () => {
+      cancelled = true
     }
-  };
-
-  const handleTileClick = async (index: number) => {
-    if (!inGame || revealed.includes(index) || loading) return;
-
-    setLoading(true);
+  }, [])
+  async function run(action: "start" | "reveal" | "cashout", tile?: number) {
+    if (lock.current || !ready) return
+    const startsRound = action === "start" || (action === "reveal" && phase === "idle")
+    if (
+      startsRound &&
+      (!Number.isFinite(stake) ||
+        stake <= 0 ||
+        Math.abs(stake * 100 - Math.round(stake * 100)) > 1e-7)
+    ) {
+      setError("Enter a positive bet with at most two decimal places.")
+      return
+    }
+    if (!startsRound && !active) return
+    lock.current = true
+    setBusy(true)
+    setError("")
+    setPending(tile ?? null)
     try {
-      const res = await revealMinesTile(index);
-      if (res.isMine) {
-        setInGame(false);
-        setHitMine(index);
-        setMines(res.mineIndices || []);
-        setMessage(`Hit a mine!`);
-      } else {
-        setRevealed(res.revealedIndices ? [...res.revealedIndices] : []);
-        setCurrentMultiplier(res.currentMultiplier ?? 1);
-        setNextMultiplier(res.nextMultiplier ?? 1);
-
-        if (res.gameOver && res.isCashout) {
-          setInGame(false);
-          setMines(res.allMines || []);
-          setMessage(`Won ₹${res.payout.toFixed(2)} (${res.currentMultiplier}x)!`);
+      let currentRound = round
+      if (startsRound) {
+        const options = { betAmount: stake, minesCount: count }
+        const res = await startMinesGame({
+          ...options,
+          requestId: request.requestId(options),
+        })
+        request.complete()
+        setRoundStake(stake)
+        setRoundCount(count)
+        currentRound = res.roundId
+        setRound(res.roundId)
+        setRevealed([])
+        setMines([])
+        setHit(null)
+        setPayout(0)
+        setMult(res.currentMultiplier)
+        setNext(res.nextMultiplier)
+        setPhase("playing")
+      }
+      if (action !== "start") {
+        const res =
+          action === "cashout"
+            ? await cashoutMines(currentRound)
+            : await revealMinesTile(currentRound, tile!)
+        if (res.revealedIndices) setRevealed(res.revealedIndices)
+        setMult(res.currentMultiplier ?? res.multiplier ?? 0)
+        setNext(res.nextMultiplier ?? 0)
+        if (res.gameOver) {
+          setMines(res.mineIndices ?? res.allMines ?? [])
+          setPayout(res.payout)
+          setHit(res.isMine ? (tile ?? null) : null)
+          setPhase(
+            res.refunded
+              ? "refunded"
+              : res.isMine || res.payout === 0
+                ? "lost"
+                : "won"
+          )
         }
       }
-    } catch (err: any) {
-      alert(err.message);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Connection interrupted. Retry the same action safely."
+      )
     } finally {
-      setLoading(false);
+      lock.current = false
+      setBusy(false)
+      setPending(null)
     }
-  };
-
-  const handleRandomPick = () => {
-    if (!inGame || loading) return;
-    const available = Array.from({ length: 25 }, (_, i) => i).filter(
-      (idx) => !revealed.includes(idx)
-    );
-    const randomIdx = available[Math.floor(Math.random() * available.length)];
-    if (randomIdx !== undefined) {
-      handleTileClick(randomIdx);
-    }
-  };
-
-  const handleCashout = async () => {
-    if (!inGame || revealed.length === 0 || loading) return;
-
-    setLoading(true);
-    try {
-      const res = await cashoutMines();
-      setInGame(false);
-      setMines(res.mineIndices);
-      setMessage(`Cashed Out ₹${res.payout.toFixed(2)} (${res.multiplier}x)!`);
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const totalProfitNum = inGame && revealed.length > 0
-    ? (betAmount || 10) * (currentMultiplier - 1)
-    : 0;
-
+  }
+  function resetGame() {
+    if (lock.current) return
+    request.complete()
+    setRound("")
+    setRevealed([])
+    setMines([])
+    setHit(null)
+    setPayout(0)
+    setRoundStake(0)
+    setMult(1)
+    setNext(1)
+    setPending(null)
+    setError("")
+    setPhase("idle")
+  }
+  function randomTile() {
+    const options = Array.from({ length: 25 }, (_, i) => i).filter(
+      (i) => !revealed.includes(i)
+    )
+    const tile = options[Math.floor(Math.random() * options.length)]
+    if (tile !== undefined) void run("reveal", tile)
+  }
   return (
-    <div className="w-full flex flex-col gap-3 sm:gap-4 bg-[#111420] rounded-xl p-3 sm:p-4 border border-[#1E2335] select-none">
-      <div className="flex flex-col md:flex-row gap-3 sm:gap-4 w-full">
-        
-        {/* Right: Mines 5x5 Board Area (On top on mobile) */}
-        <div className="order-1 md:order-2 flex-1 bg-[#0B0E17] p-3 sm:p-6 rounded-lg border border-[#1E2335] flex flex-col items-center justify-center min-h-[280px] sm:min-h-[380px] relative">
-          
-          {message && (
-            <div className={`absolute top-3 px-3 py-1 rounded-md text-xs font-bold shadow-lg text-center animate-in fade-in duration-200 z-20 ${
-              message.includes('Hit') 
-                ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
-                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-            }`}>
-              {message}
+    <section className={styles.game} aria-label={`${gameId} game`}>
+      {error && <div className={styles.errorToast} role="alert" aria-live="assertive">
+        <span className={styles.toastIcon}><TriangleAlert size={20}/></span>
+        <div><strong>Error</strong><p>{/insufficient|enough balance/i.test(error) ? "You do not have enough balance to do that." : error}</p></div>
+        <button type="button" aria-label="Dismiss error" onClick={()=>setError("")}><X size={18}/></button>
+      </div>}
+      <div className={styles.boardPanel}>
+        <div className={styles.boardStage}>
+        <div
+          className={`${styles.board} ${phase === "lost" ? styles.shake : ""}`}
+          aria-label="Mines board"
+        >
+          {Array.from({ length: 25 }, (_, i) => {
+            const selected = revealed.includes(i),
+              mine = mines.includes(i),
+              show = selected || ended
+            return (
+              <button
+                key={`${round}-${i}`}
+                type="button"
+                aria-label={`Tile ${i + 1}${show ? (mine ? ": mine" : ": gem") : ": hidden"}`}
+                disabled={!ready || busy || ended || (active && selected)}
+                onClick={() => void run("reveal", i)}
+                className={`${styles.tile} ${show ? styles.open : ""} ${selected ? styles.selected : ""} ${hit === i ? styles.hit : ""} ${ended && !selected && hit !== i ? styles.dim : ""}`}
+              >
+                {pending === i ? (
+                  <LoaderCircle className={styles.spinner} />
+                ) : show ? (
+                  <img
+                    className={styles.symbol}
+                    src={
+                      mine
+                        ? hit === i
+                          ? "/games/mine-hit.svg"
+                          : "/games/mine.svg"
+                        : "/games/gem.svg"
+                    }
+                    alt=""
+                    draggable={false}
+                  />
+                ) : (
+                  null
+                )}
+              </button>
+            )
+          })}
+        </div>
+        {ended && <div className={styles.resultLayer} role="status" aria-live="polite">
+          <div className={`${styles.resultCard} ${phase === "lost" ? styles.resultLoss : phase === "refunded" ? styles.resultRefund : ""}`}>
+            <span className={styles.resultLabel}>{phase === "won" ? "Cashed out" : phase === "lost" ? "Mine hit" : "Refunded"}</span>
+            <strong>{phase === "refunded" ? "1.00" : mult.toFixed(2)}×</strong>
+            <span className={styles.resultDivider}/>
+            <span className={styles.resultPayout}>₹{payout.toLocaleString("en-IN", {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+          </div>
+        </div>}
+        </div>
+        <div className={styles.roundBar}>
+          <button type="button" disabled={!ended || busy || !ready} onClick={()=>void run("start")} title="Start another round with the selected bet and mine count"><RotateCcw size={12}/> Repeat</button>
+          <div className={styles.multiplierHover} tabIndex={0} aria-label={`Current multiplier ${mult.toFixed(2)} times`} aria-describedby="mines-next-pick">
+            <span className={styles.multiplierPill}><ArrowRightToLine size={17}/>{mult.toFixed(2)}×</span>
+            <div id="mines-next-pick" role="tooltip" className={styles.pickTooltip}>
+              <span className={styles.tooltipHeading}>{active ? "Next gem" : "No active round"}</span>
+              <div className={styles.tooltipGrid}>
+                <div><span>Profit on win</span><strong>{active && next > 0 ? `₹${nextProfit.toFixed(2)}` : "—"}</strong></div>
+                <div><span>Gem chance</span><strong>{active ? `${chance.toFixed(6)}%` : "—"}</strong></div>
+                <div className={styles.tooltipWide}><span>Gems left</span><strong>{active ? gemsLeft : "—"}</strong></div>
+              </div>
+            </div>
+          </div>
+          <button type="button" disabled={!ended || busy || !ready} onClick={resetGame}>Clear <RotateCcw size={12}/></button>
+        </div>
+        {ended && <div className={`${styles.status} ${phase === "lost" ? styles.loss : ""}`} role="status" aria-live="polite">
+          {phase === "won" ? `Cashed out ₹${payout.toFixed(2)}` : phase === "refunded" ? `Round refunded · ₹${payout.toFixed(2)}` : `Mine hit · Lost ₹${roundStake.toFixed(2)}`}
+        </div>}
+      </div>
+      <div className={styles.controls}>
+        <div className={styles.title}>
+          <span>MINES</span>
+          <span className={styles.manual}>Manual play</span>
+        </div>
+        <label htmlFor="mines-stake">
+          Bet amount <span>INR</span>
+        </label>
+        <div className={styles.inputGroup}>
+          <input
+            id="mines-stake"
+            type="number"
+            min="0.01"
+            step="0.01"
+            inputMode="decimal"
+            value={amount}
+            disabled={active || busy || !ready}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+          <button
+            disabled={active || busy || !ready}
+            onClick={() =>
+              setAmount(String(Math.max(0.01, Math.floor(stake * 50) / 100)))
+            }
+          >
+            ½
+          </button>
+          <button
+            disabled={active || busy || !ready}
+            onClick={() => setAmount(String(Math.round(stake * 200) / 100))}
+          >
+            2×
+          </button>
+        </div>
+        <div className={styles.mineSliderGroup}>
+          <label htmlFor="mines-count"><span>Mines</span><span>Gems</span></label>
+          <div className={styles.mineSliderRow}>
+            <output htmlFor="mines-count">{count}</output>
+            <input id="mines-count" type="range" min={1} max={24} step={1} value={count} disabled={active || busy || !ready} aria-label="Number of mines" aria-valuetext={`${count} mines, ${25-count} gems`} onChange={e=>setCount(Number(e.target.value))}/>
+            <output htmlFor="mines-count">{25-count}</output>
+          </div>
+        </div>
+        <div className={styles.presets}>
+          {[1, 3, 5, 10, 24].map((n) => (
+            <button
+              key={n}
+              aria-pressed={count === n}
+              disabled={active || busy || !ready}
+              onClick={() => setCount(n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+        <div className={styles.summary}>
+          <div>
+            <span>Current multiplier</span>
+            <strong>{active || ended ? mult.toFixed(2) : "1.00"}×</strong>
+          </div>
+          <div>
+            <span>{ended ? "Net result" : "Potential profit"}</span>
+            <strong
+              className={phase === "lost" ? styles.negative : styles.positive}
+            >
+              ₹
+              {(ended
+                ? payout - roundStake
+                : active && revealed.length
+                  ? cash - roundStake
+                  : 0
+              ).toFixed(2)}
+            </strong>
+          </div>
+          {active && next > 0 && (
+            <div>
+              <span>Next gem</span>
+              <strong>{next.toFixed(2)}×</strong>
             </div>
           )}
-
-          {/* 5x5 Mines Grid */}
-          <div className="grid grid-cols-5 grid-rows-5 gap-1.5 sm:gap-2 max-w-[340px] sm:max-w-[400px] w-full aspect-square my-auto">
-            {Array.from({ length: 25 }, (_, i) => {
-              const isRevealed = revealed.includes(i);
-              const isMine = mines.includes(i);
-              const isHit = hitMine === i;
-
-              return (
-                <button
-                  key={i}
-                  disabled={!inGame || isRevealed || loading}
-                  onClick={() => handleTileClick(i)}
-                  className={`w-full h-full rounded-lg flex items-center justify-center transition-all duration-150 border-none ${
-                    isHit
-                      ? "bg-[#1E1118]"
-                      : isRevealed
-                      ? "bg-[#111624]"
-                      : isMine
-                      ? "bg-[#111624] opacity-40 cursor-default"
-                      : inGame
-                      ? "bg-[#161B2B] hover:bg-[#20273D] active:bg-[#121624] shadow-[0_3px_0_#0F131F] hover:shadow-[0_1px_0_#0F131F] hover:translate-y-[2px] cursor-pointer"
-                      : "bg-[#161B2B] shadow-[0_3px_0_#0F131F] cursor-default"
-                  }`}
-                >
-                  {isHit ? (
-                    <StakeMineIcon isHit={true} className="w-8 h-8 sm:w-10 sm:h-10 animate-in zoom-in-75 duration-150" />
-                  ) : isMine && !isRevealed ? (
-                    <StakeMineIcon isHit={false} className="w-7 h-7 sm:w-9 sm:h-9" />
-                  ) : isRevealed ? (
-                    <StakeGemIcon className="w-8 h-8 sm:w-11 sm:h-11 animate-in zoom-in-75 duration-200" />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
         </div>
-
-        {/* Left: Controls Panel (Underneath on mobile) */}
-        <div className="order-2 md:order-1 w-full md:w-72 bg-[#0B0E17] p-3.5 sm:p-4 rounded-lg border border-[#1E2335] flex flex-col justify-between gap-3">
-          
-          <div className="flex flex-col gap-3">
-            {/* Bet Amount */}
-            <div>
-              <div className="flex items-center justify-between text-[11px] font-bold text-[#8E9BAE] mb-1">
-                <span>BET AMOUNT</span>
-                <span>₹{(betAmount || 0).toFixed(2)}</span>
-              </div>
-              <div className="bg-[#111420] rounded-lg flex items-center overflow-hidden border border-[#202538] focus-within:border-[#7C3AED] transition-colors p-1">
-                <input
-                  type="number"
-                  step="any"
-                  disabled={inGame}
-                  value={betAmount === 0 ? "0.00" : betAmount}
-                  onChange={(e) => setBetAmount(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-transparent px-2 text-sm font-bold text-white outline-none disabled:opacity-75"
-                />
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  disabled={inGame}
-                  onClick={() => setBetAmount((b) => Math.max(1, Math.floor(b / 2)))}
-                  className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded"
-                >
-                  ½
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  disabled={inGame}
-                  onClick={() => setBetAmount((b) => Number((b === 0 ? 10 : b * 2).toFixed(2)))}
-                  className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded"
-                >
-                  2×
-                </Button>
-              </div>
-            </div>
-
-            {/* Mines Selector & Gems */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[11px] font-bold text-[#8E9BAE] mb-1">MINES</label>
-                <div className="relative bg-[#111420] rounded-lg border border-[#202538] overflow-hidden">
-                  <select
-                    disabled={inGame}
-                    value={minesCount}
-                    onChange={(e) => setMinesCount(Number(e.target.value))}
-                    className="w-full bg-transparent px-2.5 py-2 text-xs font-bold text-white outline-none cursor-pointer appearance-none disabled:opacity-60"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24].map((n) => (
-                      <option key={n} value={n} className="bg-[#111420] text-white">
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8E9BAE] pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#8E9BAE] mb-1">GEMS</label>
-                <div className="bg-[#111420] rounded-lg px-2.5 py-2 text-xs font-bold text-white border border-[#202538]">
-                  {remainingGems}
-                </div>
-              </div>
-            </div>
-
-            {/* Total Profit */}
-            {inGame && (
-              <div className="bg-[#111420] rounded-lg p-2.5 border border-[#202538]">
-                <div className="flex items-center justify-between text-[11px] font-bold text-[#8E9BAE]">
-                  <span>PROFIT ({currentMultiplier.toFixed(2)}×)</span>
-                  <span className="text-emerald-400 font-mono">₹{totalProfitNum.toFixed(2)}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons: Bet OR Cashout */}
-            <div className="pt-1 flex flex-col gap-2">
-              {!inGame ? (
-                <Button
-                  onClick={handleStart}
-                  disabled={loading}
-                  className="w-full h-11 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-sm tracking-wider uppercase cursor-pointer"
-                >
-                  {loading ? "Starting..." : "Bet"}
-                </Button>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <Button
-                    onClick={handleCashout}
-                    disabled={loading || revealed.length === 0}
-                    className="w-full h-11 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm tracking-wider uppercase cursor-pointer"
-                  >
-                    {loading ? "Processing..." : `Cashout (₹${((betAmount || 10) * currentMultiplier).toFixed(2)})`}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    onClick={handleRandomPick}
-                    disabled={loading}
-                    className="w-full text-xs font-semibold text-[#8E9BAE] hover:text-white"
-                  >
-                    Pick Random Tile
-                  </Button>
-                </div>
-              )}
-            </div>
-
-          </div>
-
-        </div>
-
+        <button
+          className={styles.primary}
+          disabled={!ready || busy || (active && revealed.length === 0)}
+          onClick={() => ended ? resetGame() : void run(active ? "cashout" : "start")}
+        >
+          {busy ? (
+            <>
+              <LoaderCircle className={styles.spinner} /> Processing…
+            </>
+          ) : active ? (
+            `Cash out ₹${cash.toFixed(2)}`
+          ) : ended ? (
+            "Play again"
+          ) : (
+            "Start game"
+          )}
+        </button>
+        {active && (
+          <button
+            className={styles.random}
+            disabled={busy}
+            onClick={randomTile}
+          >
+            <Shuffle size={16} /> Pick a random tile
+          </button>
+        )}
+        <p className={styles.help}>
+          Reveal gems to increase your multiplier. A mine ends the round. Cash
+          out after any gem to collect your payout.
+        </p>
       </div>
-    </div>
-  );
+    </section>
+  )
 }

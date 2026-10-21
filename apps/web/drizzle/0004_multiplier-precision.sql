@@ -1,0 +1,1 @@
+ALTER TABLE "bets" ALTER COLUMN "multiplier" SET DATA TYPE numeric(18, 8);

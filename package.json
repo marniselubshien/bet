@@ -8,13 +8,18 @@
     "dev:web": "turbo dev --filter=web",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "db:migrate": "node --env-file=.env.local packages/casino/scripts/migrate.mjs",
+    "test:casino": "node --conditions=react-server --import tsx --test packages/casino/tests/platform.test.ts",
+    "admin:grant": "node --env-file=.env.local packages/casino/scripts/grant-admin.mjs",
+    "games:add-arcade": "node --env-file=.env.local --import tsx packages/casino/scripts/add-arcade.mjs"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "tsx": "^4.23.15",
     "turbo": "^2.9.18",
     "typescript": "^5"
   },

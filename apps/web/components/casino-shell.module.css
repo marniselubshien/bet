@@ -1,0 +1,472 @@
+.shell {
+  min-height: 100dvh;
+  background: #0b0e18;
+  color: #edf0f7;
+  font-family: var(--font-dm-sans), sans-serif;
+  padding-bottom: calc(82px + env(safe-area-inset-bottom));
+}
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  border-bottom: 1px solid #222839;
+  background: #101420f5;
+  backdrop-filter: blur(18px);
+}
+.headerInner {
+  max-width: 1200px;
+  margin: auto;
+  min-height: 76px;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  text-decoration: none;
+  color: #fff;
+}
+.logo > span:first-child {
+  color: #b6a2ff;
+  font-style: italic;
+}
+.logoDot {
+  width: 5px;
+  height: 5px;
+  background: #b6a2ff;
+  border-radius: 50%;
+  align-self: flex-end;
+  margin-bottom: 7px;
+  margin-left: 3px;
+}
+.desktopNav {
+  display: flex;
+  gap: 28px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ea8bd;
+}
+.desktopNav a[aria-current] {
+  color: #c6b6ff;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+.wallet {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: #1c2334;
+  border: 1px solid #30394e;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.wallet small {
+  display: block;
+  font-size: 9px;
+  color: #9ea8bd;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.wallet svg {
+  color: #b6a2ff;
+}
+.profile,
+.bell {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #bac3d6;
+  background: #1a2030;
+  border: 1px solid #2a3245;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+}
+.account {
+  position: relative;
+}
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 14px);
+  width: 280px;
+  max-width: calc(100vw - 32px);
+  border: 1px solid #343e54;
+  background: #161c2b;
+  padding: 8px;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px #0009;
+}
+.identity {
+  padding: 12px 32px 18px 10px;
+  position: relative;
+  border-bottom: 1px solid #2c3446;
+  margin-bottom: 8px;
+}
+.identity strong,
+.identity span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.identity strong {
+  font-size: 14px;
+}
+.identity span {
+  font-size: 12px;
+  color: #9aa7be;
+  margin-top: 5px;
+}
+.identity button {
+  position: absolute;
+  right: 4px;
+  top: 10px;
+  padding: 4px;
+  cursor: pointer;
+}
+.dropdown > a,
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.dropdown > a:hover,
+.logout:hover {
+  background: #232c40;
+}
+.dropdown > a svg {
+  color: #a797dc;
+}
+.logout {
+  color: #f8a6b5;
+  border-top: 1px solid #2c3446;
+  margin-top: 6px;
+}
+.dropdown p {
+  font-size: 12px;
+  color: #f8a6b5;
+  padding: 10px;
+}
+.signIn,
+.join {
+  padding: 11px 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.signIn {
+  color: #d9dfeb;
+}
+.join {
+  background: #b9a5fb;
+  color: #19132d;
+}
+.join:hover {
+  background: #cebeff;
+}
+.main {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
+  min-width: 0;
+}
+.compactGame {
+  max-width: 800px;
+}
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  background: #121725f5;
+  backdrop-filter: blur(18px);
+  border-top: 1px solid #293145;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+}
+.bottomNav a {
+  flex: 1;
+  max-width: 150px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8794ad;
+}
+.bottomNav a > span {
+  padding: 5px 20px;
+  border-radius: 12px;
+}
+.bottomNav a[aria-current] {
+  color: #d1c2ff;
+}
+.bottomNav a[aria-current] > span {
+  background: #a58bfa1c;
+}
+.shell a:focus-visible,
+.shell button:focus-visible {
+  outline: 2px solid #c5b1ff;
+  outline-offset: 4px;
+}
+.shell a {
+  text-decoration: none;
+}
+.shell button:disabled {
+  opacity: 0.6;
+}
+@media (min-width: 768px) {
+  .bottomNav {
+    display: none;
+  }
+  .shell {
+    padding-bottom: 32px;
+  }
+}
+@media (max-width: 767px) {
+  .headerInner {
+    padding: 10px 16px;
+    min-height: 66px;
+    gap: 12px;
+  }
+  .desktopNav {
+    display: none;
+  }
+  .logo {
+    font-size: 21px;
+  }
+  .actions {
+    gap: 7px;
+  }
+  .signIn,
+  .join {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .bell {
+    display: none;
+  }
+  .main {
+    padding: 22px 16px;
+  }
+  .wallet {
+    padding: 7px 10px;
+    gap: 10px;
+  }
+  .wallet small {
+    display: none;
+  }
+  .profile {
+    min-height: 38px;
+    padding: 9px;
+  }
+  .dropdown {
+    right: 0;
+  }
+  .compactGame {
+    max-width: 600px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell * {
+    scroll-behavior: auto !important;
+  }
+}
+.authNotice {
+  padding: 16px;
+  border: 1px solid #8b6b42;
+  background: #34291d;
+  color: #f1d1a5;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.authNotice a {
+  text-decoration: underline;
+}
+.shell {
+  max-width: 480px;
+  margin: auto;
+  background: #101115;
+  box-shadow: 0 0 80px #0008;
+  padding-bottom: 100px;
+}
+.header {
+  background: linear-gradient(#181c26, #202430);
+  border-color: #2c303b;
+}
+.headerInner {
+  min-height: 72px;
+  padding: 14px 16px;
+  gap: 12px;
+}
+.logo {
+  font-size: 23px;
+}
+.logo > span:first-child {
+  color: #f4c64c;
+}
+.logoDot {
+  background: #f4c64c;
+}
+.desktopNav {
+  display: none !important;
+}
+.actions {
+  gap: 7px;
+}
+.bell {
+  display: none;
+}
+.join {
+  background: linear-gradient(#ffbd75, #ff813c);
+  color: #fff;
+}
+.wallet {
+  background: #0f131c;
+  border-color: #222837;
+}
+.wallet svg {
+  color: #ff9f52;
+}
+.main,
+.compactGame {
+  padding: 22px 14px;
+  max-width: 480px;
+}
+.bottomNav {
+  display: flex !important;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: min(100%, 480px);
+  border-radius: 22px 22px 0 0;
+  background: linear-gradient(#272d39, #131720);
+  padding-top: 12px;
+}
+.bottomNav a[aria-current] {
+  color: #fff;
+}
+.bottomNav a[aria-current] > span {
+  background: #20b8e921;
+  color: #29c0ee;
+}
+.profile {
+  background: #212b3c;
+}
+.signIn,
+.join {
+  padding: 10px;
+  font-size: 12px;
+}
+.authNotice {
+  font-size: 12px;
+}
+/* Keep icon controls visually light while retaining comfortable tap targets. */
+.profile,
+.bell {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #c6d0e1;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 8px;
+  gap: 5px;
+}
+.profile:hover {
+  color: #fff;
+}
+.bottomNav a > span,
+.bottomNav a[aria-current] > span {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4px 16px;
+}
+.bottomNav a {
+  font-size: 11px;
+  line-height: 16px;
+  gap: 5px;
+  font-weight: 500;
+}
+.bottomNav a[aria-current] {
+  font-weight: 600;
+}
+.bottomNav {
+  padding-top: 11px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
+.headerInner {
+  padding: 12px 16px;
+  min-height: 68px;
+  align-items: center;
+}
+.logo {
+  font-size: 23px;
+  line-height: 28px;
+}
+.actions {
+  gap: 8px;
+  align-items: center;
+}
+.wallet {
+  font-size: 12px;
+  line-height: 18px;
+  gap: 12px;
+}
+.main,
+.compactGame {
+  padding: 18px 16px 24px;
+}
+.dropdown > a,
+.logout {
+  font-size: 13px;
+  line-height: 20px;
+  padding: 12px 10px;
+  gap: 11px;
+}
+.identity strong {
+  font-size: 14px;
+  line-height: 20px;
+}
+.identity span {
+  font-size: 12px;
+  line-height: 18px;
+}
+.searchButton{display:inline-flex;align-items:center;justify-content:center;min-width:36px;min-height:42px;color:#a8b5cb}.searchButton:hover{color:#fff}
+.main,.compactGame{padding:12px 12px 18px}.headerInner{min-height:60px;padding:8px 12px;gap:8px}.logo{font-size:22px}.actions{gap:5px}.wallet{padding:6px 9px;gap:8px}.signIn,.join{padding:9px;font-size:12px}.bottomNav{padding-top:7px;padding-bottom:calc(7px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}.bottomNav a{gap:2px;font-size:10px;line-height:15px}.bottomNav a>span,.bottomNav a[aria-current]>span{padding:3px 16px}.shell{padding-bottom:82px}
+/* Match the navigation's charcoal-blue palette. */
+.shell{background:#151922}.header{background:linear-gradient(180deg,#202530,#1b202b);border-bottom-color:#2d3442}.bottomNav{background:linear-gradient(180deg,#272d39,#1b202b);border-top-color:#343c4b}
+.wallet{display:flex;align-items:center;gap:13px;min-height:44px;padding:7px 12px;background:#151b26;border:1px solid #343d4d;border-radius:10px;box-shadow:inset 0 1px 0 #ffffff05;color:#eef3fb;transition:border-color .15s,background .15s}.wallet:hover{background:#1b2331;border-color:#53627a}.wallet>span{display:flex;flex-direction:column;gap:3px;min-width:48px}.wallet small{display:block;margin:0;color:#8998ae;font-size:8px;line-height:10px;letter-spacing:.7px;text-transform:uppercase;font-weight:500}.wallet strong{font-size:14px;line-height:17px;letter-spacing:.1px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}.wallet>svg{color:#ffad62;flex-shrink:0;width:18px;height:18px}
+.bottomNav{border-radius:0}

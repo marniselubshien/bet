@@ -1,0 +1,186 @@
+.board {
+  padding: 15px 12px;
+  background: #141922;
+}
+.board h1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 15px;
+  font-size: 16px;
+  font-weight: 800;
+}
+.board h1 span {
+  color: #7f90a9;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.wheelFrame {
+  position: relative;
+  max-width: 330px;
+  margin: auto;
+}
+.wheel {
+  width: 100%;
+  height: auto;
+  transition: transform 2.2s cubic-bezier(0.15, 0.65, 0.15, 1);
+}
+.pointer {
+  position: absolute;
+  z-index: 2;
+  left: calc(50% - 8px);
+  top: 4px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 20px solid #fff;
+  filter: drop-shadow(0 2px 3px #0008);
+}
+.kenoGrid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 7px;
+}
+.kenoGrid button {
+  color: #e8eff7;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.kenoGrid button[data-selected="true"] {
+  background: #f4c64c;
+  color: #2c2412;
+  box-shadow:
+    0 5px 0 #8b6c20,
+    inset 0 1px 0 #fff4;
+}
+.kenoGrid button[data-drawn="true"] {
+  box-shadow: inset 0 0 0 2px #ff946d;
+  color: #ffad62;
+}
+.kenoGrid button[data-selected="true"][data-drawn="true"] {
+  background: #ff946d;
+  color: #271810;
+  box-shadow: inset 0 0 0 2px #fff1ca;
+  animation: hit 0.25s ease-out;
+}
+.kenoGrid button:disabled {
+  cursor: default;
+}
+.kenoGrid button:disabled:not([data-selected="true"]) {
+  opacity: 0.6;
+}
+.selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 33px 0 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #303d50;
+  color: #c9d5e6;
+  font-size: 10px;
+  font-weight: 750;
+}
+.kenoActions {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin: 0 0 5px;
+}
+.kenoActions > button {
+  min-height: 41px;
+  border: 0;
+  border-radius: 6px;
+  background: #3c4f66;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.kenoActions > button:hover:not(:disabled) {
+  background: #4a607b;
+}
+.kenoActions > label {
+  margin-top: 4px;
+}
+.kenoActions > select {
+  min-height: 43px;
+  border: 1px solid #465267;
+  border-radius: 6px;
+  padding: 10px;
+  background: #171f2b;
+  color: #a8b7cc;
+  font-size: 13px;
+  color-scheme: dark;
+}
+.kenoGrid button[data-selected="true"]:hover {
+  background: #f4c64c;
+  box-shadow: 0 8px 0 #8b6c20;
+}
+.payouts {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  margin-top: 12px;
+}
+.payouts > span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 45px;
+  padding: 7px;
+  border-radius: 5px;
+  background: #242f40;
+  text-align: center;
+}
+.payouts small {
+  font-size: 8px;
+  color: #91a3bc;
+}
+.payouts strong {
+  font-size: 10px;
+  color: #d6e0ef;
+}
+.payouts span[data-active="true"] {
+  background: #645225;
+}
+.payouts p {
+  color: #8191a8;
+  font-size: 10px;
+}
+.result {
+  text-align: center;
+  min-height: 30px;
+  color: #9eacc1;
+  font-size: 11px;
+  margin: 12px 0 0;
+  line-height: 1.7;
+}
+.result[data-win="true"] {
+  color: #f4c64c;
+}
+.result[data-win="false"] {
+  color: #ef8a99;
+}
+.kenoGrid button:focus-visible,
+.selection button:focus-visible {
+  outline: 2px solid #ffad62;
+  outline-offset: 2px;
+}
+@keyframes hit {
+  50% {
+    transform: scale(1.15);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wheel {
+    transition: none;
+  }
+  .kenoGrid button {
+    animation: none !important;
+    transition: none;
+  }
+}

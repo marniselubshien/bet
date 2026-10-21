@@ -104,7 +104,7 @@ export default function VipPage() {
               <p className="text-[11px] text-[#8F97A6]">Next: Platinum Tier</p>
             </div>
           </div>
-          <span className="text-xs font-mono font-bold text-[#A78BFA]">72%</span>
+          <span className="text-xs font-sans font-bold text-[#A78BFA]">72%</span>
         </div>
 
         {/* Progress Bar */}
@@ -132,7 +132,7 @@ export default function VipPage() {
 
         <div className="flex items-baseline gap-1">
           <span className="text-lg font-bold text-[#A855F7]">₹</span>
-          <span className="font-mono text-2xl font-black text-white">
+          <span className="font-sans text-2xl font-black text-white">
             {rakebackAmount.toFixed(2)}
           </span>
         </div>
@@ -171,12 +171,12 @@ export default function VipPage() {
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: tier.color }} />
                 <span className="text-xs font-black text-white">{tier.name}</span>
                 {tier.isCurrent && (
-                  <span className="text-[9px] font-black bg-[#FFD700] text-black px-1.5 py-0.2 rounded font-mono">
+                  <span className="text-[9px] font-black bg-[#FFD700] text-black px-1.5 py-0.2 rounded font-sans">
                     YOUR TIER
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-mono text-[#8F97A6]">{tier.reqWager}</span>
+              <span className="text-[10px] font-sans text-[#8F97A6]">{tier.reqWager}</span>
             </div>
 
             <div className="grid grid-cols-1 gap-1 pt-1 border-t border-white/5">

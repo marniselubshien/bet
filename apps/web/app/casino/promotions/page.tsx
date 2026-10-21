@@ -61,7 +61,7 @@ export default function PromotionsPage() {
               <p className="text-[11px] text-[#8F97A6]">Free instant balance reload</p>
             </div>
           </div>
-          <span className="text-xs font-mono font-black text-[#00E701] bg-[#1C1F2E] px-2 py-1 rounded-md">
+          <span className="text-xs font-sans font-black text-[#00E701] bg-[#1C1F2E] px-2 py-1 rounded-md">
             +₹100.00
           </span>
         </div>
@@ -144,7 +144,7 @@ export default function PromotionsPage() {
           Share your exclusive referral code with your friends and receive ₹500 when they play!
         </p>
         <div className="flex items-center gap-2 bg-[#1B1E2E] border border-[#2B3045] rounded-xl p-2">
-          <span className="font-mono text-xs font-bold text-white px-2">PASA7X</span>
+          <span className="font-sans text-xs font-bold text-white px-2">PASA7X</span>
           <button
             onClick={handleCopyCode}
             className="ml-auto px-3 py-1.5 rounded-lg bg-[#6D28D9] hover:bg-[#7C3AED] text-white text-xs font-semibold flex items-center gap-1 cursor-pointer border-none transition-colors"

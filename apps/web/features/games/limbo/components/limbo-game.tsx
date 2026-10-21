@@ -1,117 +1,225 @@
-"use client";
-
-import { useState } from "react";
-import { placeLimboBet } from "../actions";
-import { Rocket } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-
+"use client"
+import { useCallback, useRef, useState } from "react"
+import { History, Info, SlidersHorizontal } from "lucide-react"
+import { useBetRequest } from "@/features/games/use-bet-request"
+import { placeLimboBet } from "../actions"
+import { LimboDisplay, type LimboResult } from "./limbo-display"
+import shared from "../../dice/components/dice.module.css"
+import styles from "./limbo.module.css"
 export function LimboGame({ gameId }: { gameId: string }) {
-  const [betAmount, setBetAmount] = useState(10);
-  const [targetMultiplier, setTargetMultiplier] = useState(2.00);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ isWin: boolean; roll: number; payout: number; profit: number } | null>(null);
-
-  const winChance = (99 / targetMultiplier).toFixed(2);
-
+  const betRequest = useBetRequest()
+  const [betAmount, setBetAmount] = useState(10)
+  const [targetText, setTargetText] = useState("2.00")
+  const [chanceText, setChanceText] = useState("49.50000000")
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<LimboResult | null>(null)
+  const [history, setHistory] = useState<LimboResult[]>([])
+  const [error, setError] = useState("")
+  const submitting = useRef(false)
+  const pending = useRef<LimboResult | null>(null)
+  const targetMultiplier = Number(targetText)
+  const profit = Number.isFinite(betAmount * (targetMultiplier - 1))
+    ? Math.max(0, betAmount * (targetMultiplier - 1))
+    : 0
+  const finish = useCallback(() => {
+    const outcome = pending.current
+    if (!outcome) return
+    pending.current = null
+    setHistory((items) => [outcome, ...items].slice(0, 6))
+    submitting.current = false
+    setLoading(false)
+  }, [])
   const handleBet = async () => {
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const res = await placeLimboBet({ betAmount, targetMultiplier });
-      setResult(res);
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
+    if (submitting.current) return
+    if (!Number.isFinite(betAmount) || betAmount < 1) {
+      setError("Enter a bet amount of at least ₹1.")
+      return
     }
-  };
-
+    if (
+      !Number.isFinite(targetMultiplier) ||
+      targetMultiplier < 1.01 ||
+      targetMultiplier > 1000000 ||
+      !Number.isFinite(Number(chanceText)) ||
+      Number(chanceText) <= 0
+    ) {
+      setError(
+        "Enter a target from 1.01× to 1,000,000× and a valid win chance."
+      )
+      return
+    }
+    submitting.current = true
+    setLoading(true)
+    setResult(null)
+    setError("")
+    try {
+      const res = await placeLimboBet({
+        betAmount,
+        targetMultiplier,
+        requestId: betRequest.requestId({ betAmount, targetMultiplier }),
+      })
+      betRequest.complete()
+      const outcome = {
+        id: crypto.randomUUID(),
+        roll: res.roll,
+        isWin: res.isWin,
+        payout: res.payout,
+      }
+      pending.current = outcome
+      setResult(outcome)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to place bet. Please try again."
+      )
+      submitting.current = false
+      setLoading(false)
+    }
+  }
   return (
-    <div className="w-full flex flex-col md:flex-row gap-3 sm:gap-4 bg-[#111420] rounded-xl p-3 sm:p-4 border border-[#1E2335] select-none">
-      {/* Game Visuals (On top on mobile) */}
-      <div className="order-1 md:order-2 flex-1 flex flex-col items-center justify-center bg-[#0B0E17] rounded-lg border border-[#1E2335] p-5 sm:p-6 relative min-h-[180px] sm:min-h-[240px]">
-        {result ? (
-          <div className="text-center animate-in zoom-in duration-300">
-            <div className={`text-6xl sm:text-7xl font-black mb-2 tracking-tighter ${result.isWin ? 'text-emerald-400' : 'text-rose-500'}`}>
-              {result.roll.toFixed(2)}x
-            </div>
-            <div className={`text-sm sm:text-base font-bold ${result.isWin ? 'text-emerald-400' : 'text-[#64748B]'}`}>
-              {result.isWin ? `+ ₹${result.payout.toFixed(2)} (${targetMultiplier}x)` : 'Busted'}
+    <section className={shared.game} aria-label={`${gameId} game`}>
+      <div className={styles.board}>
+        <div className={shared.history} aria-label="Recent multipliers">
+          {history.map((item) => (
+            <span
+              key={item.id}
+              className={item.isWin ? shared.winChip : shared.lossChip}
+            >
+              {item.roll.toFixed(2)}×
+            </span>
+          ))}
+          {!history.length && (
+            <span className={shared.empty}>Your results appear here</span>
+          )}
+          <History size={15} />
+        </div>
+        <LimboDisplay result={result} busy={loading} onFinish={finish} />
+        <div className={styles.settings}>
+          <div>
+            <label htmlFor="limbo-target">Target Multiplier</label>
+            <div className={shared.settingInput}>
+              <input
+                id="limbo-target"
+                type="number"
+                inputMode="decimal"
+                min="1.01"
+                max="1000000"
+                step="0.01"
+                value={targetText}
+                disabled={loading}
+                onChange={(e) => {
+                  setTargetText(e.target.value)
+                  const v = e.target.valueAsNumber
+                  if (Number.isFinite(v) && v > 0)
+                    setChanceText((99 / v).toFixed(8))
+                }}
+              />
+              <span>×</span>
             </div>
           </div>
-        ) : (
-          <div className="text-center">
-            <Rocket className="w-12 h-12 text-[#64748B] mx-auto mb-3 animate-bounce" />
-            <div className="text-5xl sm:text-6xl font-black text-white/80 mb-1">1.00x</div>
-            <p className="text-xs text-[#64748B]">Target: {targetMultiplier.toFixed(2)}x</p>
+          <div>
+            <label htmlFor="limbo-chance">Win Chance</label>
+            <div className={shared.settingInput}>
+              <input
+                id="limbo-chance"
+                type="number"
+                inputMode="decimal"
+                min="0.000099"
+                max={99 / 1.01}
+                step="0.01"
+                value={chanceText}
+                disabled={loading}
+                onChange={(e) => {
+                  setChanceText(e.target.value)
+                  const v = e.target.valueAsNumber
+                  if (Number.isFinite(v) && v > 0)
+                    setTargetText(String(Number((99 / v).toPrecision(12))))
+                }}
+              />
+              <span>%</span>
+            </div>
           </div>
-        )}
+        </div>
       </div>
-
-      {/* Controls Sidebar (Underneath visuals on mobile) */}
-      <div className="order-2 md:order-1 w-full md:w-72 flex flex-col gap-3.5 bg-[#0B0E17] p-3.5 sm:p-4 rounded-lg border border-[#1E2335]">
-        <div>
-          <label className="text-[11px] font-bold text-[#8E9BAE] uppercase tracking-wider">Bet Amount</label>
-          <div className="mt-1.5 flex bg-[#111420] rounded-lg p-1 border border-[#202538] focus-within:border-[#7C3AED] transition-colors">
-            <input 
-              type="number" 
-              value={betAmount} 
-              onChange={(e) => setBetAmount(Math.max(1, Number(e.target.value)))}
-              className="w-full bg-transparent px-2 text-sm font-bold text-white outline-none"
-            />
-            <div className="flex items-center gap-0.5">
-              <Button 
-                variant="ghost" 
-                size="xs" 
-                onClick={() => setBetAmount(b => Math.max(1, Math.floor(b / 2)))} 
-                className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded"
-              >
-                ½
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="xs" 
-                onClick={() => setBetAmount(b => b * 2)} 
-                className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded"
-              >
-                2×
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[11px] font-bold text-[#8E9BAE] uppercase tracking-wider">Target Multiplier</label>
-          <div className="mt-1.5 bg-[#111420] rounded-lg p-1.5 border border-[#202538] flex items-center focus-within:border-[#7C3AED] transition-colors">
-            <input 
-              type="number" 
-              step="0.05"
-              min="1.01"
-              max="1000000"
-              value={targetMultiplier} 
-              onChange={(e) => setTargetMultiplier(Math.max(1.01, Number(e.target.value)))}
-              className="w-full bg-transparent px-2 text-sm font-bold text-white outline-none"
-            />
-            <span className="text-xs font-bold text-[#64748B] mr-2">X</span>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[11px] font-bold text-[#8E9BAE] uppercase tracking-wider">Win Chance</label>
-          <div className="mt-1.5 bg-[#111420] rounded-lg p-2 border border-[#202538]">
-            <span className="text-xs font-bold text-[#8E9BAE]">{winChance}%</span>
-          </div>
-        </div>
-
-        <Button 
-          onClick={handleBet} 
+      <div className={shared.controls}>
+        <button
+          type="button"
+          className={shared.betButton}
+          onClick={handleBet}
           disabled={loading}
-          className="mt-2 w-full h-11 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 tracking-wider uppercase cursor-pointer"
         >
-          {loading ? "Rolling..." : "Bet"}
-        </Button>
+          {loading ? "Revealing…" : "Bet"}
+        </button>
+        {error && (
+          <p role="alert" className={shared.error}>
+            {error}
+          </p>
+        )}
+        <label htmlFor="limbo-bet">
+          Bet Amount <span>INR</span>
+        </label>
+        <div className={shared.amount}>
+          <span>₹</span>
+          <input
+            id="limbo-bet"
+            type="number"
+            inputMode="decimal"
+            min="1"
+            step="0.01"
+            value={betAmount}
+            disabled={loading}
+            onChange={(e) => setBetAmount(e.target.valueAsNumber || 0)}
+          />
+          <button
+            type="button"
+            aria-label="Halve bet"
+            disabled={loading}
+            onClick={() =>
+              setBetAmount((b) => Math.max(1, Math.round(b * 50) / 100))
+            }
+          >
+            ½
+          </button>
+          <button
+            type="button"
+            aria-label="Double bet"
+            disabled={loading}
+            onClick={() => setBetAmount((b) => Math.round(b * 200) / 100)}
+          >
+            2×
+          </button>
+        </div>
+        <label htmlFor="limbo-profit">
+          Profit on Win <span>INR</span>
+        </label>
+        <div className={shared.amount}>
+          <span>₹</span>
+          <output id="limbo-profit">{profit.toFixed(2)}</output>
+        </div>
+        <div className={shared.mode}>
+          <SlidersHorizontal size={14} />
+          Manual betting
+          <small>
+            Target{" "}
+            {Number.isFinite(targetMultiplier)
+              ? targetMultiplier.toFixed(2)
+              : "—"}
+            ×
+          </small>
+        </div>
       </div>
-    </div>
-  );
+      <details className={shared.help}>
+        <summary>
+          <Info size={15} />
+          How to play
+        </summary>
+        <p>
+          Set a target multiplier and place your bet. If the revealed multiplier
+          reaches your target, your payout is your bet multiplied by the target.
+          Higher targets have a lower win chance. Each result and payout comes
+          from the server.
+        </p>
+      </details>
+    </section>
+  )
 }

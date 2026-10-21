@@ -1,226 +1,319 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef } from "react";
-import { placeCrashBet, resolveCrashGame } from "../actions";
-import { Rocket } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { useEffect, useRef, useState } from "react"
+import {
+  Activity,
+  ArrowUpRight,
+  Check,
+  ChevronRight,
+  History,
+} from "lucide-react"
+import { useBetRequest } from "@/features/games/use-bet-request"
+import { placeCrashBet, resolveCrashGame, resumeCrashGame } from "../actions"
+import styles from "./crash.module.css"
+import { CrashChart } from "./crash-chart"
+
+type GameState = "idle" | "running" | "crashed" | "cashed_out"
+type Result = Awaited<ReturnType<typeof resolveCrashGame>>
 
 export function CrashGame({ gameId }: { gameId: string }) {
-  const [betAmount, setBetAmount] = useState(10);
-  const [autoCashout, setAutoCashout] = useState(2.00);
-  const [gameState, setGameState] = useState<'idle' | 'running' | 'crashed' | 'cashed_out'>('idle');
-  const [currentMultiplier, setCurrentMultiplier] = useState(1.00);
-  const [crashPoint, setCrashPoint] = useState(0);
-  const [cashedOutAt, setCashedOutAt] = useState<number | null>(null);
-  const [payout, setPayout] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const betRequest = useBetRequest()
+  const [betAmount, setBetAmount] = useState(10)
+  const [autoCashout, setAutoCashout] = useState(2)
+  const [gameState, setGameState] = useState<GameState>("idle")
+  const [currentMultiplier, setCurrentMultiplier] = useState(1)
+  const [roundId, setRoundId] = useState("")
+  const [payout, setPayout] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [recovering, setRecovering] = useState(true)
+  const [error, setError] = useState("")
+  const [connection, setConnection] = useState(true)
+  const [history, setHistory] = useState<
+    { id: string; multiplier: number; win: boolean }[]
+  >([])
+  const settled = useRef(new Set<string>())
+  const submitting = useRef(false)
 
-  const animationFrameRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-
-  const handleStart = async () => {
-    setLoading(true);
-    setCashedOutAt(null);
-    setPayout(0);
-    setCurrentMultiplier(1.00);
-
-    try {
-      const res = await placeCrashBet({ betAmount, autoCashout });
-      setCrashPoint(res.crashPoint);
-      setGameState('running');
-      startTimeRef.current = performance.now();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
+  const applyResult = (res: Result, id: string) => {
+    if (settled.current.has(id)) return
+    setCurrentMultiplier(res.currentMultiplier ?? 1)
+    setConnection(true)
+    if (res.gameOver) {
+      settled.current.add(id)
+      setGameState(res.isWin ? "cashed_out" : "crashed")
+      setPayout(res.payout)
+      setHistory((items) =>
+        [
+          { id, multiplier: res.currentMultiplier ?? 1, win: !!res.isWin },
+          ...items,
+        ].slice(0, 8)
+      )
     }
-  };
-
-  const handleCashout = async () => {
-    if (gameState !== 'running') return;
-    const finalMult = Number(currentMultiplier.toFixed(2));
-    setGameState('cashed_out');
-    setCashedOutAt(finalMult);
-    const winPayout = Number((betAmount * finalMult).toFixed(2));
-    setPayout(winPayout);
-
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-
-    try {
-      await resolveCrashGame({
-        betAmount,
-        cashoutMultiplier: finalMult,
-        crashPoint,
-        isWin: true,
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  }
 
   useEffect(() => {
-    if (gameState !== 'running') return;
-
-    const tick = (now: number) => {
-      const elapsed = (now - startTimeRef.current) / 1000;
-      const mult = 1.0 + Math.pow(elapsed * 0.55, 1.8);
-
-      if (mult >= crashPoint) {
-        setCurrentMultiplier(crashPoint);
-        setGameState('crashed');
-        resolveCrashGame({
-          betAmount,
-          cashoutMultiplier: 0,
-          crashPoint,
-          isWin: false,
-        });
-        return;
-      }
-
-      if (autoCashout > 1 && mult >= autoCashout) {
-        setCurrentMultiplier(autoCashout);
-        setGameState('cashed_out');
-        setCashedOutAt(autoCashout);
-        const winPayout = Number((betAmount * autoCashout).toFixed(2));
-        setPayout(winPayout);
-        resolveCrashGame({
-          betAmount,
-          cashoutMultiplier: autoCashout,
-          crashPoint,
-          isWin: true,
-        });
-        return;
-      }
-
-      setCurrentMultiplier(mult);
-      animationFrameRef.current = requestAnimationFrame(tick);
-    };
-
-    animationFrameRef.current = requestAnimationFrame(tick);
-
+    let cancelled = false
+    resumeCrashGame()
+      .then((res) => {
+        if (cancelled || !res) return
+        setRoundId(res.roundId)
+        setBetAmount(res.betAmount)
+        setAutoCashout(res.autoCashout)
+        setCurrentMultiplier(res.currentMultiplier ?? 1)
+        setGameState("running")
+      })
+      .catch(() => {
+        // Signed-out visitors can view the game; placing a bet checks authentication.
+      })
+      .finally(() => {
+        if (!cancelled) setRecovering(false)
+      })
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [gameState, crashPoint, autoCashout, betAmount]);
+      cancelled = true
+    }
+  }, [])
 
-  const currentProfit = Number(((betAmount * currentMultiplier) - betAmount).toFixed(2));
+  const handleStart = async () => {
+    if (submitting.current || recovering || gameState === "running") return
+    if (
+      !Number.isFinite(betAmount) ||
+      betAmount < 1 ||
+      !Number.isFinite(autoCashout) ||
+      autoCashout < 1.01
+    ) {
+      setError(
+        "Enter a bet of at least ₹1 and a cashout target of at least 1.01×."
+      )
+      return
+    }
+    submitting.current = true
+    setLoading(true)
+    setError("")
+    try {
+      const res = await placeCrashBet({
+        betAmount,
+        autoCashout,
+        requestId: betRequest.requestId({ betAmount, autoCashout }),
+      })
+      betRequest.complete()
+      setRoundId(res.roundId)
+      setPayout(0)
+      setCurrentMultiplier(1)
+      setConnection(true)
+      setGameState("running")
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to start. Please try again."
+      )
+    } finally {
+      submitting.current = false
+      setLoading(false)
+    }
+  }
+
+  const handleCashout = async () => {
+    if (submitting.current || gameState !== "running") return
+    submitting.current = true
+    setLoading(true)
+    setError("")
+    try {
+      applyResult(await resolveCrashGame(roundId, "cashout"), roundId)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to cash out. Please try again."
+      )
+    } finally {
+      submitting.current = false
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (gameState !== "running") return
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout>
+    const poll = async () => {
+      try {
+        const res = await resolveCrashGame(roundId)
+        if (!cancelled) applyResult(res, roundId)
+        if (res.gameOver) return
+      } catch {
+        if (!cancelled) setConnection(false)
+      }
+      if (!cancelled) timer = setTimeout(poll, 500)
+    }
+    void poll()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [gameState, roundId])
+
+  const running = gameState === "running"
+  const locked = running || loading || recovering
+  const profit = Number.isFinite(betAmount * autoCashout)
+    ? betAmount * (autoCashout - 1)
+    : 0
 
   return (
-    <div className="w-full flex flex-col md:flex-row gap-3 sm:gap-4 bg-[#111420] rounded-xl p-3 sm:p-4 border border-[#1E2335] select-none">
-      {/* Game Visuals (On top on mobile) */}
-      <div className="order-1 md:order-2 flex-1 flex flex-col items-center justify-center bg-[#0B0E17] rounded-lg border border-[#1E2335] p-5 sm:p-6 relative min-h-[200px] sm:min-h-[260px] overflow-hidden">
-        {/* Background Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
-        {/* Central Display */}
-        <div className="z-10 text-center">
-          <div className={`text-6xl sm:text-7xl font-black mb-2 tracking-tight font-mono transition-colors ${
-            gameState === 'crashed'
-              ? 'text-rose-500'
-              : gameState === 'cashed_out'
-              ? 'text-emerald-400'
-              : 'text-white'
-          }`}>
-            {currentMultiplier.toFixed(2)}x
-          </div>
-
-          {gameState === 'crashed' && (
-            <div className="text-sm font-bold text-rose-500 tracking-wider uppercase animate-bounce">
-              CRASHED
-            </div>
-          )}
-
-          {gameState === 'cashed_out' && (
-            <div className="text-sm font-bold text-emerald-400 tracking-wider">
-              CASHED OUT ₹{payout.toFixed(2)} ({cashedOutAt}x)
-            </div>
-          )}
-
-          {gameState === 'running' && (
-            <div className="flex items-center justify-center gap-2 text-xs font-bold text-amber-400">
-              <Rocket className="w-4 h-4 animate-pulse" />
-              <span>FLYING...</span>
-            </div>
-          )}
-
-          {gameState === 'idle' && (
-            <p className="text-xs text-[#64748B]">Set your bet and cashout before the crash</p>
-          )}
-        </div>
-      </div>
-
-      {/* Controls Sidebar (Underneath visuals on mobile) */}
-      <div className="order-2 md:order-1 w-full md:w-72 flex flex-col gap-3.5 bg-[#0B0E17] p-3.5 sm:p-4 rounded-lg border border-[#1E2335]">
-        <div>
-          <label className="text-[11px] font-bold text-[#8E9BAE] uppercase tracking-wider">Bet Amount</label>
-          <div className="mt-1.5 flex bg-[#111420] rounded-lg p-1 border border-[#202538] focus-within:border-[#7C3AED] transition-colors">
-            <input 
-              type="number" 
-              disabled={gameState === 'running'}
-              value={betAmount} 
-              onChange={(e) => setBetAmount(Math.max(1, Number(e.target.value)))}
-              className="w-full bg-transparent px-2 text-sm font-bold text-white outline-none disabled:opacity-50"
-            />
-            <div className="flex items-center gap-0.5">
-              <Button 
-                variant="ghost" 
-                size="xs" 
-                disabled={gameState === 'running'}
-                onClick={() => setBetAmount(b => Math.max(1, Math.floor(b / 2)))} 
-                className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded disabled:opacity-50"
-              >
-                ½
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="xs" 
-                disabled={gameState === 'running'}
-                onClick={() => setBetAmount(b => b * 2)} 
-                className="text-[#8E9BAE] hover:text-white px-2 h-7 text-xs font-semibold rounded disabled:opacity-50"
-              >
-                2×
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[11px] font-bold text-[#8E9BAE] uppercase tracking-wider">Auto Cashout</label>
-          <div className="mt-1.5 bg-[#111420] rounded-lg p-1.5 border border-[#202538] flex items-center focus-within:border-[#7C3AED] transition-colors">
-            <input 
-              type="number" 
-              step="0.1"
-              min="1.01"
-              disabled={gameState === 'running'}
-              value={autoCashout} 
-              onChange={(e) => setAutoCashout(Math.max(1.01, Number(e.target.value)))}
-              className="w-full bg-transparent px-2 text-sm font-bold text-white outline-none disabled:opacity-50"
-            />
-            <span className="text-xs font-bold text-[#64748B] mr-2">X</span>
-          </div>
-        </div>
-
-        {gameState === 'running' ? (
-          <Button 
-            onClick={handleCashout} 
-            className="mt-2 w-full h-11 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] tracking-wider uppercase cursor-pointer"
-          >
-            Cashout ₹{(betAmount + currentProfit).toFixed(2)} ({currentMultiplier.toFixed(2)}x)
-          </Button>
+    <section className={styles.game} aria-label={`${gameId} game`}>
+      <div className={styles.history} aria-label="Your recent rounds">
+        <History size={14} />
+        {history.length ? (
+          history.map((item) => (
+            <span
+              key={item.id}
+              className={item.win ? styles.winChip : styles.lossChip}
+            >
+              {item.multiplier.toFixed(2)}×
+            </span>
+          ))
         ) : (
-          <Button 
-            onClick={handleStart} 
-            disabled={loading}
-            className="mt-2 w-full h-11 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 tracking-wider uppercase cursor-pointer"
-          >
-            {loading ? "Starting..." : "Bet"}
-          </Button>
+          <span className={styles.emptyHistory}>
+            Your round results will appear here
+          </span>
         )}
       </div>
-    </div>
-  );
+      <CrashChart
+        multiplier={currentMultiplier}
+        state={gameState}
+        payout={payout}
+      />
+      <footer className={styles.footer}>
+        <span className={connection ? styles.connected : styles.reconnecting}>
+          <Activity size={13} />{" "}
+          {connection ? "Network Status" : "Reconnecting…"}
+        </span>
+        <span>
+          <Check size={13} /> Server-settled rounds
+        </span>
+      </footer>
+      <div className={styles.controls}>
+        <button
+          type="button"
+          className={styles.betButton}
+          data-running={running}
+          disabled={loading || recovering}
+          onClick={running ? handleCashout : handleStart}
+        >
+          {recovering ? (
+            "Checking active round…"
+          ) : loading ? (
+            running ? (
+              "Cashing out…"
+            ) : (
+              "Starting round…"
+            )
+          ) : running ? (
+            <>
+              <span>Cash Out</span>
+              <strong>
+                ₹{(betAmount * currentMultiplier).toFixed(2)}{" "}
+                <ArrowUpRight size={18} />
+              </strong>
+            </>
+          ) : (
+            <>
+              <span>{gameState === "idle" ? "Bet" : "Bet Next Round"}</span>
+              <ChevronRight size={19} />
+            </>
+          )}
+        </button>
+        <label htmlFor="crash-bet">
+          Bet Amount <span>INR</span>
+        </label>
+        <div className={styles.inputGroup}>
+          <span className={styles.currency}>₹</span>
+          <input
+            id="crash-bet"
+            type="number"
+            inputMode="decimal"
+            min="1"
+            step="0.01"
+            value={betAmount}
+            disabled={locked}
+            onChange={(e) => setBetAmount(e.target.valueAsNumber || 0)}
+          />
+          <button
+            type="button"
+            aria-label="Halve bet"
+            disabled={locked}
+            onClick={() =>
+              setBetAmount((b) => Math.max(1, Math.round(b * 50) / 100))
+            }
+          >
+            ½
+          </button>
+          <button
+            type="button"
+            aria-label="Double bet"
+            disabled={locked}
+            onClick={() => setBetAmount((b) => Math.round(b * 200) / 100)}
+          >
+            2×
+          </button>
+        </div>
+        <label htmlFor="crash-target">
+          Cashout At <span>Multiplier</span>
+        </label>
+        <div className={styles.inputGroup}>
+          <input
+            id="crash-target"
+            type="number"
+            inputMode="decimal"
+            min="1.01"
+            max="1000000"
+            step="0.01"
+            value={autoCashout}
+            disabled={locked}
+            onChange={(e) => setAutoCashout(e.target.valueAsNumber || 0)}
+          />
+          <span className={styles.unit}>×</span>
+          <button
+            type="button"
+            aria-label="Decrease cashout target"
+            disabled={locked}
+            onClick={() =>
+              setAutoCashout((v) =>
+                Math.max(1.01, Math.round((v - 0.1) * 100) / 100)
+              )
+            }
+          >
+            ⌄
+          </button>
+          <button
+            type="button"
+            aria-label="Increase cashout target"
+            disabled={locked}
+            onClick={() =>
+              setAutoCashout((v) =>
+                Math.min(1000000, Math.round((v + 0.1) * 100) / 100)
+              )
+            }
+          >
+            ⌃
+          </button>
+        </div>
+        <div className={styles.profit}>
+          <span>
+            Profit on win <small>at {autoCashout.toFixed(2)}×</small>
+          </span>
+          <strong>₹{profit.toFixed(2)}</strong>
+        </div>
+        {error && (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
+
+        <p className={styles.hint}>
+          Auto cashout settles at your target. You can cash out earlier.
+        </p>
+      </div>
+    </section>
+  )
 }

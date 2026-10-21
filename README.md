@@ -1,3 +1,5 @@
+Game platform architecture and admin setup: [docs/game-platform.md](docs/game-platform.md).
+
 # shadcn/ui monorepo template
 
 This is a Next.js monorepo template with shadcn/ui.

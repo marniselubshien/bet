@@ -15,6 +15,34 @@
       "when": 1790007840329,
       "tag": "0001_glamorous_mysterio",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792573803729,
+      "tag": "0002_casino-platform",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792573930646,
+      "tag": "0003_casino-invariants",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792574470377,
+      "tag": "0004_multiplier-precision",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792574765345,
+      "tag": "0005_round-events",
+      "breakpoints": true
     }
   ]
 }

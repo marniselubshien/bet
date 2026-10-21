@@ -196,7 +196,7 @@ export default function SupportPage() {
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <span className="text-[10px] font-mono font-bold text-[#556585] bg-[#0A0D18] border border-[#1A2238] px-2 py-0.5 rounded-md">
+          <span className="text-[10px] font-sans font-bold text-[#556585] bg-[#0A0D18] border border-[#1A2238] px-2 py-0.5 rounded-md">
             Ticket #8492
           </span>
           <span className="text-[9px] text-[#4E5C78]">Priority Desk</span>
@@ -265,14 +265,14 @@ export default function SupportPage() {
                 {m.attachment && (
                   <div className="mt-2 p-2 rounded-xl bg-black/30 border border-white/10 flex items-center gap-2 text-[10px] text-emerald-300">
                     <FileText className="w-3.5 h-3.5" />
-                    <span className="font-mono">{m.attachment}</span>
+                    <span className="font-sans">{m.attachment}</span>
                     <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-auto" />
                   </div>
                 )}
               </div>
 
               {isUser && (
-                <span className="text-[9px] text-[#556585] mt-1 pr-1 font-mono">{m.time}</span>
+                <span className="text-[9px] text-[#556585] mt-1 pr-1 font-sans">{m.time}</span>
               )}
             </div>
           );
@@ -301,7 +301,7 @@ export default function SupportPage() {
         <div className="mb-2 px-3 py-1.5 rounded-xl bg-[#131828] border border-[#7C3AED]/40 flex items-center justify-between text-xs text-slate-200">
           <div className="flex items-center gap-2">
             <Paperclip className="w-3.5 h-3.5 text-[#C4B5FD]" />
-            <span className="text-[11px] font-mono">{attachedFile}</span>
+            <span className="text-[11px] font-sans">{attachedFile}</span>
             <span className="text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded">Ready</span>
           </div>
           <button 
